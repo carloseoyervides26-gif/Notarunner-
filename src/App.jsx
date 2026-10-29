@@ -1,26 +1,17 @@
-// Prueba temporal: muestra todas las páginas juntas
-import Login from './pages/Login'
-import Registro from './pages/Registro'
-import Explorar from './pages/Explorar'
-import ProgramarCarrera from './pages/ProgramarCarrera'
-import RutaActiva from './pages/RutaActiva'
-import EnCarrera from './pages/EnCarrera'
-import CrearRuta from './pages/CrearRuta'
-import Comunidad from './pages/Comunidad'
-import Perfil from './pages/Perfil'
-
+// Prueba de colores y fuentes
 export default function App() {
   return (
-    <div>
-      <Login />
-      <Registro />
-      <Explorar />
-      <ProgramarCarrera />
-      <RutaActiva />
-      <EnCarrera />
-      <CrearRuta />
-      <Comunidad />
-      <Perfil />
+    <div className="p-6 space-y-3">
+      <h1 className="text-2xl font-bold">Explorar</h1>
+      <div className="bg-tarjeta rounded-2xl p-4">
+        <p className="text-suave">Monterrey, NL</p>
+        <p className="font-datos text-lima text-3xl">UV 9.2</p>
+        <p className="font-datos text-cian">AQI 42</p>
+        <p className="font-datos text-peligro">CALOR FUERTE</p>
+      </div>
+      <button className="bg-menta text-fondo font-bold rounded-xl w-full py-4">
+        Crear nueva ruta
+      </button>
     </div>
   )
 }
