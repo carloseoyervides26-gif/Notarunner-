@@ -1,8 +1,26 @@
-// Prueba rápida de Tailwind
+// Prueba temporal: muestra todas las páginas juntas
+import Login from './pages/Login'
+import Registro from './pages/Registro'
+import Explorar from './pages/Explorar'
+import ProgramarCarrera from './pages/ProgramarCarrera'
+import RutaActiva from './pages/RutaActiva'
+import EnCarrera from './pages/EnCarrera'
+import CrearRuta from './pages/CrearRuta'
+import Comunidad from './pages/Comunidad'
+import Perfil from './pages/Perfil'
+
 export default function App() {
   return (
-    <h1 className="text-3xl font-bold text-green-400 p-6">
-      Not a runner funciona
-    </h1>
+    <div>
+      <Login />
+      <Registro />
+      <Explorar />
+      <ProgramarCarrera />
+      <RutaActiva />
+      <EnCarrera />
+      <CrearRuta />
+      <Comunidad />
+      <Perfil />
+    </div>
   )
 }
