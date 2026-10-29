@@ -1,6 +1,7 @@
-// Mapa de rutas de la app
+/// Mapa de rutas de la app
 import { Navigate, Route, Routes } from 'react-router-dom'
 import RutaProtegida from './components/RutaProtegida'
+import PruebaContexto from './components/PruebaContexto'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Explorar from './pages/Explorar'
@@ -13,24 +14,29 @@ import CrearRuta from './pages/CrearRuta'
 
 export default function App() {
   return (
-    <Routes>
-      {/* Públicas: no piden sesión */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/registro" element={<Registro />} />
+    <>
+      {/* TEMPORAL: tarjeta de prueba del clima */}
+      <PruebaContexto />
 
-      {/* Protegidas: sin sesión mandan a /login */}
-      <Route element={<RutaProtegida />}>
-        <Route path="/" element={<Explorar />} />
-        <Route path="/ruta-activa" element={<RutaActiva />} />
-        <Route path="/en-carrera" element={<EnCarrera />} />
-        <Route path="/comunidad" element={<Comunidad />} />
-        <Route path="/perfil" element={<Perfil />} />
-        <Route path="/programar" element={<ProgramarCarrera />} />
-        <Route path="/crear-ruta" element={<CrearRuta />} />
-      </Route>
+      <Routes>
+        {/* Públicas: no piden sesión */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
 
-      {/* Dirección que no existe: a Explorar */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Protegidas: sin sesión mandan a /login */}
+        <Route element={<RutaProtegida />}>
+          <Route path="/" element={<Explorar />} />
+          <Route path="/ruta-activa" element={<RutaActiva />} />
+          <Route path="/en-carrera" element={<EnCarrera />} />
+          <Route path="/comunidad" element={<Comunidad />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="/programar" element={<ProgramarCarrera />} />
+          <Route path="/crear-ruta" element={<CrearRuta />} />
+        </Route>
+
+        {/* Dirección que no existe: a Explorar */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
 }
