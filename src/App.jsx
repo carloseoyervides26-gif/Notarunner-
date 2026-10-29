@@ -1,7 +1,7 @@
-/// Mapa de rutas de la app
+// Mapa de rutas de la app
 import { Navigate, Route, Routes } from 'react-router-dom'
 import RutaProtegida from './components/RutaProtegida'
-import PruebaContexto from './components/PruebaContexto'
+import Plantilla from './components/Plantilla'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import Explorar from './pages/Explorar'
@@ -14,17 +14,15 @@ import CrearRuta from './pages/CrearRuta'
 
 export default function App() {
   return (
-    <>
-      {/* TEMPORAL: tarjeta de prueba del clima */}
-      <PruebaContexto />
+    <Routes>
+      {/* Públicas: no piden sesión ni llevan barras */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/registro" element={<Registro />} />
 
-      <Routes>
-        {/* Públicas: no piden sesión */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/registro" element={<Registro />} />
-
-        {/* Protegidas: sin sesión mandan a /login */}
-        <Route element={<RutaProtegida />}>
+      {/* Protegidas: sin sesión mandan a /login */}
+      <Route element={<RutaProtegida />}>
+        {/* Todas usan Encabezado + BarraInferior */}
+        <Route element={<Plantilla />}>
           <Route path="/" element={<Explorar />} />
           <Route path="/ruta-activa" element={<RutaActiva />} />
           <Route path="/en-carrera" element={<EnCarrera />} />
@@ -33,10 +31,10 @@ export default function App() {
           <Route path="/programar" element={<ProgramarCarrera />} />
           <Route path="/crear-ruta" element={<CrearRuta />} />
         </Route>
+      </Route>
 
-        {/* Dirección que no existe: a Explorar */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </>
+      {/* Dirección que no existe: a Explorar */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   )
 }
