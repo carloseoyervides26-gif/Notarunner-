@@ -11,6 +11,7 @@ import Comunidad from './pages/Comunidad'
 import Perfil from './pages/Perfil'
 import ProgramarCarrera from './pages/ProgramarCarrera'
 import CrearRuta from './pages/CrearRuta'
+import PruebaComponentes from './components/PruebaComponentes'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/programar" element={<ProgramarCarrera />} />
           <Route path="/crear-ruta" element={<CrearRuta />} />
+          <Route path="/prueba" element={<PruebaComponentes />} />
         </Route>
       </Route>
 

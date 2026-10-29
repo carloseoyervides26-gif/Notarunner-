@@ -1,6 +1,7 @@
 // Deja pasar solo si hay sesión; si no, manda a /login
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../services/auth'
+import Cargando from './Cargando'
 
 export default function RutaProtegida() {
   const { usuario, cargando } = useAuth()
@@ -8,7 +9,7 @@ export default function RutaProtegida() {
 
   // Mientras revisa la sesión
   if (cargando) {
-    return <p className="p-6 text-suave">Cargando…</p>
+    return <Cargando texto="Revisando tu sesión…" />
   }
 
   // Sin sesión: a /login (recordamos a dónde quería ir)
