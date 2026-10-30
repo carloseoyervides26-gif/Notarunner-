@@ -16,6 +16,7 @@ export default function Registro() {
   const navegar = useNavigate()
 
   const [nombre, setNombre] = useState('')
+  const [ciudad, setCiudad] = useState('Monterrey, Nuevo León')
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
   const [confirmar, setConfirmar] = useState('')
@@ -54,6 +55,7 @@ export default function Registro() {
     else if (confirmar !== password)
       nuevos.confirmar = 'Las contraseñas no son iguales. Escríbelas otra vez.'
 
+    if (!ciudad.trim()) nuevos.ciudad = 'Escribe tu ciudad.'
     return nuevos
   }
 
@@ -66,7 +68,7 @@ export default function Registro() {
 
     setEnviando(true)
     try {
-      await registrar(nombre.trim(), correo.trim(), password)
+       await registrar(nombre.trim(), correo.trim(), password, ciudad.trim())
       navegar('/', { replace: true })
     } catch (err) {
       setErrorGeneral(
@@ -122,6 +124,13 @@ export default function Registro() {
           onChange={cambiar('confirmar', setConfirmar)}
           error={errores.confirmar}
         />
+           <CampoTexto
+             etiqueta="Ciudad"
+             autoComplete="address-level2"
+             value={ciudad}
+             onChange={cambiar('ciudad', setCiudad)}
+             error={errores.ciudad}
+   />
 
         <label className="flex items-center gap-3 text-suave min-h-11">
           <input
@@ -136,7 +145,7 @@ export default function Registro() {
         {errorGeneral && <MensajeError texto={errorGeneral} />}
 
         <Boton type="submit" cargando={enviando}>
-          Crear mi cuenta
+          Crear cuenta
         </Boton>
       </form>
 

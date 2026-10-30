@@ -25,7 +25,8 @@ export default function App() {
         {/* Todas usan Encabezado + BarraInferior */}
         <Route element={<Plantilla />}>
           <Route path="/" element={<Explorar />} />
-          <Route path="/ruta-activa" element={<RutaActiva />} />
+          {/* El id es opcional: /ruta-activa o /ruta-activa/ID (acuerdo Personas 1, 3 y 4) */}
+          <Route path="/ruta-activa/:id?" element={<RutaActiva />} /> 
           <Route path="/en-carrera" element={<EnCarrera />} />
           <Route path="/comunidad" element={<Comunidad />} />
           <Route path="/perfil" element={<Perfil />} />

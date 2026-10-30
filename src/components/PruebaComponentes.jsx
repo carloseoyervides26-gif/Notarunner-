@@ -1,4 +1,5 @@
 // TEMPORAL: vitrina para probar los componentes. Se borra después.
+import BotonCerrarSesion from './BotonCerrarSesion'
 import { useState } from 'react'
 import Boton from './Boton'
 import Tarjeta from './Tarjeta'
@@ -55,6 +56,9 @@ export default function PruebaComponentes() {
         <p className="text-suave mb-4">Así se ve un panel que sube desde abajo.</p>
         <Boton onClick={() => setHojaAbierta(false)}>Entendido</Boton>
       </HojaFlotante>
+      
+      <BotonCerrarSesion />
     </div>
+    
   )
 }

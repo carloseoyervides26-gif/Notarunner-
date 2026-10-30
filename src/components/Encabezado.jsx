@@ -21,7 +21,9 @@ export default function Encabezado({ alTocarLogo }) {
   const { uv, temperatura, cargando } = useContexto()
   const { perfil } = useAuth()
 
-  const titulo = TITULOS[pathname] ?? 'Not a runner'
+  // Busca el título por el inicio de la dirección (ej. /ruta-activa/5)
+const base = '/' + (pathname.split('/')[1] ?? '')
+const titulo = TITULOS[base] ?? 'Not a runner'
   // Si no hay foto, mostramos la primera letra del nombre
   const inicial = perfil?.nombre?.charAt(0).toUpperCase() ?? '?'
 

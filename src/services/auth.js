@@ -38,7 +38,8 @@ function guardarSesion(activa) {
 // Simula que tarda como si fuera internet
 const esperar = (ms) => new Promise((listo) => setTimeout(listo, ms))
 
-export async function registrar(nombre, correo, password) {
+// ciudad es opcional (pendiente de acordar con la Persona 5)
+export async function registrar(nombre, correo, password, ciudad = 'Monterrey, Nuevo León') {
   await esperar(500)
   if (!nombre || !correo || !password) {
     throw new Error('Completa todos los campos.')

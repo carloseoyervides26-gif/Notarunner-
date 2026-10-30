@@ -71,7 +71,7 @@ export default function Login() {
       {/* Logo y bienvenida */}
       <div className="flex flex-col items-center text-center mb-8">
         <IconoLogo className="w-14 h-14 text-lima" />
-        <h1 className="font-titulos text-3xl font-bold mt-3">Not a runner</h1>
+       <h1 className="font-titulos text-3xl font-bold mt-3">Bienvenido a Not a runner</h1>
         <p className="text-suave mt-2">Corre o camina sin arriesgarte con el calor.</p>
       </div>
 
@@ -112,14 +112,14 @@ export default function Login() {
         {errorGeneral && <MensajeError texto={errorGeneral} />}
 
         <Boton type="submit" cargando={enviando}>
-          Entrar
+          Iniciar sesión
         </Boton>
       </form>
 
       <p className="text-center text-suave mt-6">
         ¿No tienes cuenta?{' '}
         <Link to="/registro" className="text-menta font-bold underline underline-offset-4">
-          Crea una aquí
+          Regístrate
         </Link>
       </p>
     </main>
