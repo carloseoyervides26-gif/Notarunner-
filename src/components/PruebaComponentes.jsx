@@ -56,7 +56,15 @@ export default function PruebaComponentes() {
         <p className="text-suave mb-4">Así se ve un panel que sube desde abajo.</p>
         <Boton onClick={() => setHojaAbierta(false)}>Entendido</Boton>
       </HojaFlotante>
-      
+            {/* Revisa si las variables de Supabase llegaron (no muestra la clave) */}
+      <Tarjeta titulo="Supabase">
+        <p className="font-datos text-sm">
+          URL: {import.meta.env.VITE_SUPABASE_URL ? '✅ cargada' : '❌ falta'}
+        </p>
+        <p className="font-datos text-sm">
+          Clave: {import.meta.env.VITE_SUPABASE_ANON_KEY ? '✅ cargada' : '❌ falta'}
+        </p>
+      </Tarjeta>
       <BotonCerrarSesion />
     </div>
     
