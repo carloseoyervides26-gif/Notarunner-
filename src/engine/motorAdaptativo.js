@@ -1,8 +1,18 @@
 // Motor adaptativo: funciones puras (sin React ni internet).
 // Todas reciben datos y devuelven decisiones. Los umbrales están en reglas.js.
 
-import { SENSACION, UV, AQI, NIVELES, AVISOS_AIRE, MEJOR_HORA } from './reglas.js'
-
+import {
+  SENSACION,
+  UV,
+  AQI,
+  NIVELES,
+  AVISOS_AIRE,
+  MEJOR_HORA,
+  RANKING,
+  ALERTA_METROS,
+  EN_TRAMO_METROS,
+  RUTA_ALTERNA,
+} from './reglas.js'
 // ---------- Utilidades ----------
 
 // Si falta la sensación térmica, usa la temperatura
@@ -169,23 +179,170 @@ export function generarChecklist(contexto) {
   return lista
 }
 
-// ---------- PROVISIONALES (se hacen en el siguiente paso) ----------
+// ---------- Distancias (Haversine hecha a mano) ----------
 
-export function rankearRutas(rutas) {
-  return rutas.map((r) => ({
-    ...r,
-    puntaje: 100,
-    distanciaKm: null,
-    etiquetas: [],
-    advertencia: null,
-  }))
+function aRadianes(grados) {
+  return (grados * Math.PI) / 180
 }
 
-export function evaluarAlertaEnCarrera() {
+// Distancia en metros entre dos puntos { lat, lng }
+function distanciaMetros(a, b) {
+  const R = 6371000 // radio de la Tierra en metros
+  const dLat = aRadianes(b.lat - a.lat)
+  const dLng = aRadianes(b.lng - a.lng)
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aRadianes(a.lat)) * Math.cos(aRadianes(b.lat)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(x))
+}
+
+function esNoche(hora) {
+  return hora >= RANKING.NOCHE_DESDE || hora <= RANKING.NOCHE_HASTA
+}
+
+// ---------- ADAPTACIÓN 3: ranking de rutas por ubicación ----------
+
+export function rankearRutas(rutas = [], contexto, ubicacion) {
+  const riesgo = evaluarRiesgo(contexto)
+  const noche = esNoche(contexto.hora)
+  const origen = ubicacion ?? contexto.ubicacion
+
+  const lista = rutas.map((ruta) => {
+    let puntaje = RANKING.BASE
+    let advertencia = null
+    const etiquetas = []
+
+    // Distancia desde el usuario hasta el inicio de la ruta
+    let distanciaKm = null
+    if (origen && Number.isFinite(ruta.lat_inicio) && Number.isFinite(ruta.lng_inicio)) {
+      distanciaKm =
+        distanciaMetros(origen, { lat: ruta.lat_inicio, lng: ruta.lng_inicio }) / 1000
+      puntaje -= distanciaKm * RANKING.PENALIZA_KM
+    }
+
+    // La sombra solo importa cuando hay calor, UV o aire malo
+    if (riesgo.nivel >= 1) puntaje += (ruta.sombra_pct ?? 0) * RANKING.FACTOR_SOMBRA
+
+    // Fuentes de agua (con tope)
+    puntaje += Math.min(
+      (ruta.fuentes_agua ?? 0) * RANKING.PUNTOS_POR_FUENTE,
+      RANKING.MAX_PUNTOS_AGUA
+    )
+
+    // De noche, la iluminación suma
+    if (noche && (ruta.iluminacion_pct ?? 0) > RANKING.ILUMINACION_MIN) {
+      puntaje += RANKING.BONO_ILUMINACION
+    }
+
+    // Rutas "solo mañana" después de las 11:00
+    if (ruta.solo_am && contexto.hora >= RANKING.HORA_SOLO_AM) {
+      puntaje -= RANKING.PENALIZA_SOLO_AM
+      advertencia = ruta.aviso_horario || 'Sol directo después de las 11:00 AM'
+    }
+
+    // Etiquetas automáticas
+    const sombra = ruta.sombra_pct ?? 0
+    if (sombra >= RANKING.SOMBRA_ETIQUETA && riesgo.nivel >= 1) {
+      etiquetas.push('SEGURA PARA CALOR ACTUAL')
+    }
+    if (sombra >= RANKING.SOMBRA_ETIQUETA) etiquetas.push(`${sombra}% SOMBRA`)
+    if (ruta.iluminacion_pct === 100) etiquetas.push('100% ILUMINACIÓN')
+
+    return {
+      ...ruta,
+      puntaje: Math.round(puntaje * 10) / 10,
+      distanciaKm: distanciaKm === null ? null : Math.round(distanciaKm * 10) / 10,
+      etiquetas,
+      advertencia,
+    }
+  })
+
+  // De mayor a menor puntaje
+  return lista.sort((a, b) => b.puntaje - a.puntaje)
+}
+
+// ---------- ADAPTACIÓN 5: alerta en carrera por tramos sin sombra ----------
+
+// posicion = { lat, lng }. geojsonRuta = FeatureCollection del Contrato 3
+// (los GeoJSON guardan las coordenadas como [lng, lat]).
+export function evaluarAlertaEnCarrera(posicion, geojsonRuta, contexto) {
+  if (!posicion || !geojsonRuta || !Array.isArray(geojsonRuta.features)) return null
+
+  // Solo alerta si hay calor o UV alto
+  const hayRiesgo = sensacionDe(contexto) >= SENSACION.MODERADO || contexto.uv >= UV.ALTO
+  if (!hayRiesgo) return null
+
+  // Junta todos los puntos de la ruta, en orden, marcando los que no tienen sombra
+  const puntos = []
+  for (const f of geojsonRuta.features) {
+    if (f.geometry?.type !== 'LineString') continue
+    const baja = f.properties?.sombra === 'baja'
+    for (const c of f.geometry.coordinates) {
+      puntos.push({ lat: c[1], lng: c[0], baja })
+    }
+  }
+  if (puntos.length === 0) return null
+
+  // Punto de la ruta más cercano al corredor
+  let cercano = 0
+  let minimo = Infinity
+  puntos.forEach((p, i) => {
+    const d = distanciaMetros(posicion, p)
+    if (d < minimo) {
+      minimo = d
+      cercano = i
+    }
+  })
+
+  // Avanza por la ruta (hacia adelante) hasta el primer punto sin sombra
+  let metros = minimo
+  for (let j = cercano; j < puntos.length; j++) {
+    if (metros > ALERTA_METROS) return null
+    if (puntos[j].baja) {
+      if (metros <= EN_TRAMO_METROS) {
+        return {
+          mensaje: '¡Estás en un tramo sin sombra y con pavimento caliente!',
+          metros: 0,
+        }
+      }
+      const redondeado = Math.round(metros)
+      return {
+        mensaje: `¡Atención a ${redondeado}m! Tramo sin sombra y pavimento caliente.`,
+        metros: redondeado,
+      }
+    }
+    if (j + 1 < puntos.length) metros += distanciaMetros(puntos[j], puntos[j + 1])
+  }
   return null
 }
 
-export function elegirRutaAlterna() {
-  return null
-}// Motor adaptativo: evaluarRiesgo, calcularMejorHora, rankearRutas,
-// generarChecklist, evaluarAlertaEnCarrera, elegirRutaAlterna (CONTRATO 2)
+// ---------- ADAPTACIÓN 1 (parte B): ruta alterna con más sombra ----------
+
+export function elegirRutaAlterna(rutaActual, rutas = [], contexto) {
+  if (!rutaActual || evaluarRiesgo(contexto).nivel < 2) return null
+  if (!Number.isFinite(rutaActual.lat_inicio) || !Number.isFinite(rutaActual.lng_inicio)) return null
+
+  const inicioActual = { lat: rutaActual.lat_inicio, lng: rutaActual.lng_inicio }
+
+  const candidatas = rutas.filter((r) => {
+    if (r.id === rutaActual.id) return false
+    if (!Number.isFinite(r.lat_inicio) || !Number.isFinite(r.lng_inicio)) return false
+    const lejosKm = distanciaMetros(inicioActual, { lat: r.lat_inicio, lng: r.lng_inicio }) / 1000
+    return (
+      lejosKm <= RUTA_ALTERNA.RADIO_KM &&
+      Math.abs(r.distancia_km - rutaActual.distancia_km) <= RUTA_ALTERNA.DIFERENCIA_DISTANCIA_KM &&
+      (r.sombra_pct ?? 0) - (rutaActual.sombra_pct ?? 0) >= RUTA_ALTERNA.SOMBRA_EXTRA_PCT
+    )
+  })
+  if (candidatas.length === 0) return null
+
+  // La que tenga más sombra
+  candidatas.sort((a, b) => (b.sombra_pct ?? 0) - (a.sombra_pct ?? 0))
+  const elegida = candidatas[0]
+
+  // Estimación del ahorro de sensación térmica (es una estimación, dilo así en el documento)
+  const ahorro = ((elegida.sombra_pct ?? 0) - (rutaActual.sombra_pct ?? 0)) * RUTA_ALTERNA.FACTOR_AHORRO
+  return { ...elegida, ahorroTermico: Math.round(ahorro * 10) / 10 }
+}
+
+

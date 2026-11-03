@@ -53,3 +53,22 @@ export const RUTA_ALTERNA = {
   SOMBRA_EXTRA_PCT: 10,
   FACTOR_AHORRO: 0.06,
 }
+
+// Ranking de rutas (rankearRutas)
+export const RANKING = {
+  BASE: 100,
+  FACTOR_SOMBRA: 0.5, // puntos por cada 1% de sombra (solo si hay calor)
+  PUNTOS_POR_FUENTE: 5, // puntos por cada fuente de agua
+  MAX_PUNTOS_AGUA: 20, // tope de puntos por agua
+  PENALIZA_KM: 2, // puntos que se restan por km de distancia al usuario
+  NOCHE_DESDE: 19, // de noche: 19:00 en adelante...
+  NOCHE_HASTA: 6, // ...hasta las 6:00
+  ILUMINACION_MIN: 80, // más de 80% de iluminación suma puntos de noche
+  BONO_ILUMINACION: 10,
+  HORA_SOLO_AM: 11, // desde esta hora, las rutas "solo AM" se penalizan
+  PENALIZA_SOLO_AM: 40,
+  SOMBRA_ETIQUETA: 70, // desde aquí la ruta lleva etiqueta de sombra
+}
+
+// A cuántos metros de un tramo sin sombra se considera "estás en el tramo"
+export const EN_TRAMO_METROS = 20
