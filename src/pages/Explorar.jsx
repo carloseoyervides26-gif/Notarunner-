@@ -10,6 +10,7 @@ import PanelClima from '../components/explorar/PanelClima'
 import TarjetasUVAireHumedad from '../components/explorar/TarjetasUVAireHumedad'
 import MejorHora from '../components/explorar/MejorHora'
 import ListaRutas from '../components/explorar/ListaRutas'
+import AvisoProximaCarrera from '../components/explorar/AvisoProximaCarrera' 
 
 export default function Explorar() {
   const contexto = useContexto()
@@ -36,6 +37,7 @@ export default function Explorar() {
 
   return (
     <div className="p-4 space-y-4">
+      <AvisoProximaCarrera contexto={contexto} />
       <SelectorDistancia
         opcion={opcion}
         alElegir={setOpcion}
