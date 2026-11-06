@@ -12,6 +12,7 @@ import Perfil from './pages/Perfil'
 import ProgramarCarrera from './pages/ProgramarCarrera'
 import CrearRuta from './pages/CrearRuta'
 import PruebaComponentes from './components/PruebaComponentes'
+import PruebaGps from './pages/PruebaGps' // TEMPORAL (Persona 4): borrar antes del PR
 
 export default function App() {
   return (
@@ -26,13 +27,14 @@ export default function App() {
         <Route element={<Plantilla />}>
           <Route path="/" element={<Explorar />} />
           {/* El id es opcional: /ruta-activa o /ruta-activa/ID (acuerdo Personas 1, 3 y 4) */}
-          <Route path="/ruta-activa/:id?" element={<RutaActiva />} /> 
+          <Route path="/ruta-activa/:id?" element={<RutaActiva />} />
           <Route path="/en-carrera" element={<EnCarrera />} />
           <Route path="/comunidad" element={<Comunidad />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/programar" element={<ProgramarCarrera />} />
           <Route path="/crear-ruta" element={<CrearRuta />} />
           <Route path="/prueba" element={<PruebaComponentes />} />
+          <Route path="/prueba-gps" element={<PruebaGps />} /> {/* TEMPORAL (Persona 4) */}
         </Route>
       </Route>
 
