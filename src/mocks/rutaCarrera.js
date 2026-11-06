@@ -1,9 +1,10 @@
+import tramosCalles from "./tramosCalles.json";
+
 // Rutas falsas para probar (Persona 4). Misma forma que el CONTRATO 3.
 export const rutaCarreraFalsa = {
   id: "demo",
   nombre: "Ruta de prueba",
   descripcion: "Circuito corto con un tramo sin sombra.",
-  distancia_km: 1.4,
   desnivel_m: 12,
   sombra_pct: 25,
   lat_inicio: 25.6866,
@@ -11,10 +12,7 @@ export const rutaCarreraFalsa = {
   geojson: {
     type: "FeatureCollection",
     features: [
-      { type: "Feature", properties: { sombra: "alta" },
-        geometry: { type: "LineString", coordinates: [[-100.3161, 25.6866], [-100.313, 25.6885]] } },
-      { type: "Feature", properties: { sombra: "baja" },
-        geometry: { type: "LineString", coordinates: [[-100.313, 25.6885], [-100.305, 25.693]] } },
+      ...tramosCalles, // tramos que siguen las calles (los genera ajustarCalles.mjs)
       { type: "Feature", properties: { tipo: "agua", nombre: "Fuente 1" },
         geometry: { type: "Point", coordinates: [-100.314, 25.688] } },
       { type: "Feature", properties: { tipo: "medico", nombre: "Servicio médico" },
