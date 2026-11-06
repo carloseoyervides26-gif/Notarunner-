@@ -16,12 +16,14 @@ export default function CarreraProvider({ children }) {
   const [ritmoActual, setRitmoActual] = useState(null); // seg por km
   const [precision, setPrecision] = useState(null);
   const [error, setError] = useState(null);
+  const [avisoPantalla, setAvisoPantalla] = useState(null);
 
   const fuente = useRef(null);
   const estadoRef = useRef("inactiva");
   const ultimo = useRef(null);
   const ventana = useRef([]); // {t, km} para ritmo actual
   const kmRef = useRef(0);
+  const wakeLock = useRef(null);
 
   const cambiarEstado = (e) => {
     estadoRef.current = e;
@@ -34,6 +36,35 @@ export default function CarreraProvider({ children }) {
       if (estadoRef.current === "corriendo") setTiempoSeg((s) => s + 1);
     }, 1000);
     return () => clearInterval(id);
+  }, []);
+
+  // Pantalla encendida durante la carrera
+  async function pedirPantalla() {
+    if (!("wakeLock" in navigator)) {
+      setAvisoPantalla("Pon el Auto-Bloqueo del iPhone en Nunca durante la carrera.");
+      return;
+    }
+    try {
+      wakeLock.current = await navigator.wakeLock.request("screen");
+    } catch {
+      setAvisoPantalla("Pon el Auto-Bloqueo del iPhone en Nunca durante la carrera.");
+    }
+  }
+
+  function soltarPantalla() {
+    wakeLock.current?.release?.();
+    wakeLock.current = null;
+  }
+
+  // Si la app vuelve a primer plano, pide otra vez la pantalla encendida
+  useEffect(() => {
+    const f = () => {
+      if (document.visibilityState === "visible" && estadoRef.current === "corriendo") {
+        pedirPantalla();
+      }
+    };
+    document.addEventListener("visibilitychange", f);
+    return () => document.removeEventListener("visibilitychange", f);
   }, []);
 
   function alLlegarPunto(p) {
@@ -75,27 +106,32 @@ export default function CarreraProvider({ children }) {
     setTrayecto([]);
     setRitmoActual(null);
     setError(null);
+    setAvisoPantalla(null);
     fuente.current = gpsSimulado
       ? crearGpsSimulado(extraerPolilinea(geojsonRuta))
       : crearGpsReal();
     cambiarEstado("corriendo");
     arrancarFuente();
+    pedirPantalla();
   }
 
   function pausar() {
     fuente.current?.detener();
     cambiarEstado("pausada");
+    soltarPantalla();
   }
 
   function reanudar() {
     ultimo.current = null; // evita un "salto" al volver
     cambiarEstado("corriendo");
     arrancarFuente();
+    pedirPantalla();
   }
 
   function finalizar() {
     fuente.current?.detener();
     cambiarEstado("terminada");
+    soltarPantalla();
   }
 
   function reiniciar() {
@@ -105,6 +141,7 @@ export default function CarreraProvider({ children }) {
     setDistanciaKm(0);
     setTiempoSeg(0);
     setPosicion(null);
+    soltarPantalla();
   }
 
   // Solo útil con GPS simulado (botón x5)
@@ -118,7 +155,7 @@ export default function CarreraProvider({ children }) {
     <CarreraCtx.Provider
       value={{
         estado, posicion, trayecto, distanciaKm, tiempoSeg,
-        ritmoActual, ritmoPromedio, precision, error,
+        ritmoActual, ritmoPromedio, precision, error, avisoPantalla,
         iniciar, pausar, reanudar, finalizar, reiniciar, setVelocidad,
       }}
     >
