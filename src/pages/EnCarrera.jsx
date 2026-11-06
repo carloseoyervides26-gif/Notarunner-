@@ -5,10 +5,9 @@ import { useContexto } from "../context/ContextoProvider";
 import MapaRuta from "../components/carrera/MapaRuta";
 import { extraerPolilinea, haversineKm } from "../services/gps";
 import { instruccionGiro } from "../services/giros";
-import { rutaCarreraFalsa } from "../mocks/rutaCarrera";
-
-// TODO: cuando exista getRuta(id) de la Persona 5, usar el id de localStorage "ruta_activa_id"
-const ruta = rutaCarreraFalsa;
+import { buscarRuta } from "../mocks/rutaCarrera";
+import { evaluarAlertaEnCarrera } from "../engine/motorAdaptativo";
+import { guardarCarreraSeguro } from "../services/guardadoP4";
 
 function largoRutaKm(geojson) {
   const p = extraerPolilinea(geojson);
@@ -36,8 +35,12 @@ function zonaCardio(b) {
 
 export default function EnCarrera() {
   const c = useCarrera();
-  const { gpsSimulado, setGpsSimulado } = useContexto();
+  const contexto = useContexto();
+  const { gpsSimulado, setGpsSimulado } = contexto;
   const navigate = useNavigate();
+
+  // TODO: cambiar por getRuta(id) de la Persona 5
+  const ruta = buscarRuta(localStorage.getItem("ruta_activa_id"));
 
   const [bpm, setBpm] = useState(125);
   const [verSos, setVerSos] = useState(false);
@@ -58,11 +61,34 @@ export default function EnCarrera() {
     return () => clearInterval(id);
   }, [c.estado]);
 
+  // Guarda la carrera una sola vez al terminar
+  const guardada = useRef(false);
+  useEffect(() => {
+    if (c.estado !== "terminada") {
+      guardada.current = false;
+      return;
+    }
+    if (guardada.current) return;
+    guardada.current = true;
+    guardarCarreraSeguro({
+      route_id: ruta.id,
+      inicio: new Date(Date.now() - c.tiempoSeg * 1000).toISOString(),
+      fin: new Date().toISOString(),
+      duracion_seg: c.tiempoSeg,
+      distancia_km: Number(c.distanciaKm.toFixed(3)),
+      ritmo_min_km: c.ritmoPromedio ? Number((c.ritmoPromedio / 60).toFixed(2)) : null,
+      trayecto: c.trayecto,
+      sensacion_termica: contexto.sensacionTermica,
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c.estado]);
+
   const totalKm = largoRutaKm(ruta.geojson);
   const pct = Math.min(100, (c.distanciaKm / totalKm) * 100);
   const restante = Math.max(0, totalKm - c.distanciaKm);
   const llego = c.estado === "corriendo" && c.distanciaKm >= totalKm;
   const giro = instruccionGiro(c.posicion, ruta.geojson);
+  const alerta = c.posicion ? evaluarAlertaEnCarrera(c.posicion, ruta.geojson, contexto) : null;
 
   // Enlaces del SOS
   const { lat, lng } = c.posicion || {};
@@ -92,7 +118,6 @@ export default function EnCarrera() {
           <p>Distancia: {c.distanciaKm.toFixed(2)} km</p>
           <p>Ritmo promedio: {formatoRitmo(c.ritmoPromedio)} /km</p>
         </div>
-        {/* TODO: llamar guardarCarrera() de db.js */}
         <button
           className="w-full bg-menta text-fondo font-bold py-4 rounded-xl"
           onClick={() => { c.reiniciar(); navigate("/"); }}
@@ -110,6 +135,14 @@ export default function EnCarrera() {
         <div className="bg-tarjeta rounded-xl p-3">
           <p className="font-bold text-menta">{giro.texto}</p>
           <p className="font-datos text-sm">{giro.metros} m</p>
+        </div>
+      )}
+
+      {/* Alerta solar (tramo sin sombra cerca) */}
+      {alerta && (
+        <div className="bg-peligro/20 border border-peligro rounded-xl p-3">
+          <p className="text-peligro font-bold">{alerta.mensaje}</p>
+          <p className="font-datos text-sm text-peligro">{alerta.metros} m</p>
         </div>
       )}
 
