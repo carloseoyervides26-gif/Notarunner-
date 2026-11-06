@@ -21,6 +21,7 @@ function formatoRitmo(seg) {
   return `${Math.floor(seg / 60)}'${String(Math.round(seg % 60)).padStart(2, "0")}"`;
 }
 
+// 879 seg -> 14:39
 function formatoTiempo(seg) {
   const m = Math.floor(seg / 60);
   return `${String(m).padStart(2, "0")}:${String(seg % 60).padStart(2, "0")}`;
@@ -90,40 +91,64 @@ export default function EnCarrera() {
   const giro = instruccionGiro(c.posicion, ruta.geojson);
   const alerta = c.posicion ? evaluarAlertaEnCarrera(c.posicion, ruta.geojson, contexto) : null;
 
+  // Flecha y texto de apoyo de la instrucción de giro
+  const textoGiro = giro?.texto || "";
+  const flecha = textoGiro.includes("DERECHA") ? "↱" : textoGiro.includes("IZQUIERDA") ? "↰" : "↑";
+  const apoyoGiro = textoGiro.includes("DERECHA")
+    ? "Gira a la derecha hacia el siguiente punto de la ruta"
+    : textoGiro.includes("IZQUIERDA")
+    ? "Gira a la izquierda hacia el siguiente punto de la ruta"
+    : textoGiro.includes("LLEGADA")
+    ? "Estás por terminar la ruta"
+    : "Continúa por la ruta";
+
   // Enlaces del SOS
   const { lat, lng } = c.posicion || {};
   const enlaceMapa = c.posicion ? `https://www.google.com/maps?q=${lat},${lng}` : "";
   const textoSos = encodeURIComponent(`Necesito ayuda. Mi ubicación: ${enlaceMapa}`);
 
+  // Sin carrera iniciada
   if (c.estado === "inactiva") {
     return (
       <div className="p-4 space-y-4 text-white">
-        <p className="text-suave">No hay una carrera en curso.</p>
-        <button className="w-full bg-tarjeta py-3 rounded-xl" onClick={() => setGpsSimulado(!gpsSimulado)}>
+        <div className="bg-tarjeta rounded-2xl p-5 text-center space-y-1">
+          <p className="font-bold">No hay una carrera en curso</p>
+          <p className="text-suave text-sm">Elige una ruta en Ruta Activa para comenzar.</p>
+        </div>
+        <button className="w-full text-xs text-suave py-1" onClick={() => setGpsSimulado(!gpsSimulado)}>
           GPS simulado: {gpsSimulado ? "SÍ" : "NO"} (tocar para cambiar)
         </button>
-        <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={() => c.iniciar(ruta.geojson)}>
-          Iniciar carrera de prueba
+        <button
+          className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
+          onClick={() => c.iniciar(ruta.geojson)}
+        >
+          ▶ Iniciar carrera de prueba
         </button>
       </div>
     );
   }
 
+  // Carrera terminada
   if (c.estado === "terminada") {
     return (
-      <div className="p-4 space-y-4 text-white">
-        <h2 className="text-2xl font-titulos">¡Carrera finalizada!</h2>
-        <div className="bg-tarjeta rounded-xl p-4 space-y-2 font-datos">
-          <p>Tiempo: {formatoTiempo(c.tiempoSeg)}</p>
-          <p>Distancia: {c.distanciaKm.toFixed(2)} km</p>
-          <p>Ritmo promedio: {formatoRitmo(c.ritmoPromedio)} /km</p>
+      <div className="p-4 min-h-[70vh] flex items-center justify-center text-white">
+        <div className="bg-tarjeta rounded-3xl p-6 w-full max-w-sm text-center space-y-4">
+          <h2 className="text-xl font-titulos font-bold">¡Carrera finalizada!</h2>
+          <div className="font-datos text-lima text-sm space-y-1">
+            <p>Tiempo {formatoTiempo(c.tiempoSeg)} min</p>
+            <p>Distancia {c.distanciaKm.toFixed(2)} km</p>
+            <p>Ritmo promedio {formatoRitmo(c.ritmoPromedio)} /km</p>
+          </div>
+          <button
+            className="w-full bg-menta text-fondo font-bold py-3 rounded-full"
+            onClick={() => {
+              c.reiniciar();
+              navigate("/");
+            }}
+          >
+            Volver a Explorar
+          </button>
         </div>
-        <button
-          className="w-full bg-menta text-fondo font-bold py-4 rounded-xl"
-          onClick={() => { c.reiniciar(); navigate("/"); }}
-        >
-          Volver a Explorar
-        </button>
       </div>
     );
   }
@@ -132,94 +157,142 @@ export default function EnCarrera() {
     <div className="p-4 space-y-3 text-white">
       {/* Instrucción de giro */}
       {giro && (
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="font-bold text-menta">{giro.texto}</p>
-          <p className="font-datos text-sm">{giro.metros} m</p>
+        <div className="bg-tarjeta rounded-2xl p-3 flex items-center gap-3">
+          <div className="w-16 h-16 rounded-xl bg-cian/20 text-cian flex flex-col items-center justify-center shrink-0">
+            <span className="text-2xl leading-none">{flecha}</span>
+            <span className="font-datos text-xs mt-1">{giro.metros} m</span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-menta tracking-wide">{textoGiro}</p>
+            <p className="text-sm text-suave mt-0.5">{apoyoGiro}</p>
+          </div>
         </div>
       )}
 
-      {/* Alerta solar (tramo sin sombra cerca) */}
-      {alerta && (
-        <div className="bg-peligro/20 border border-peligro rounded-xl p-3">
-          <p className="text-peligro font-bold">{alerta.mensaje}</p>
-          <p className="font-datos text-sm text-peligro">{alerta.metros} m</p>
-        </div>
-      )}
+      {/* Mapa */}
+      <MapaRuta geojson={ruta.geojson} posicion={c.posicion} trayecto={c.trayecto} altura={300} seguir />
 
-      <MapaRuta geojson={ruta.geojson} posicion={c.posicion} trayecto={c.trayecto} altura={220} seguir />
-
-      {c.error && <p className="bg-peligro/20 text-peligro rounded-xl p-3">{c.error}</p>}
-      {c.avisoPantalla && <p className="bg-lima/20 text-lima rounded-xl p-3 text-sm">{c.avisoPantalla}</p>}
-
+      {c.error && <p className="bg-peligro/20 text-peligro rounded-xl p-3 text-sm">{c.error}</p>}
+      {c.avisoPantalla && <p className="bg-lima/15 text-lima rounded-xl p-3 text-xs">{c.avisoPantalla}</p>}
       {llego && (
-        <div className="bg-lima/20 text-lima rounded-xl p-3 font-bold">¡Llegaste! Toca Finalizar para cerrar la carrera.</div>
+        <div className="bg-lima/15 text-lima rounded-xl p-3 font-bold text-sm">
+          ¡Llegaste! Toca Finalizar para cerrar la carrera.
+        </div>
       )}
-      {c.estado === "pausada" && <p className="text-center text-lima font-bold">En pausa</p>}
+      {c.estado === "pausada" && (
+        <p className="text-center text-lima text-xs font-bold tracking-widest">EN PAUSA</p>
+      )}
 
-      {/* Métricas */}
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="text-suave text-xs">RITMO</p>
-          <p className="text-2xl font-datos text-lima">{formatoRitmo(c.ritmoActual)}</p>
-          <p className="text-suave text-xs">/km</p>
+      {/* Ritmo actual */}
+      <div className="px-1">
+        <p className="text-[11px] text-suave tracking-widest">RITMO ACTUAL</p>
+        <p className="font-datos text-6xl">
+          {formatoRitmo(c.ritmoActual)}
+          <span className="text-lg text-suave ml-1">/km</span>
+        </p>
+      </div>
+
+      {/* Tiempo y cardio */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-tarjeta rounded-2xl p-3">
+          <p className="text-[11px] text-suave tracking-widest">TIEMPO</p>
+          <p className="font-datos text-3xl mt-1">{formatoTiempo(c.tiempoSeg)}</p>
         </div>
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="text-suave text-xs">TIEMPO</p>
-          <p className="text-2xl font-datos">{formatoTiempo(c.tiempoSeg)}</p>
-        </div>
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="text-suave text-xs">CARDIO</p>
-          <p className="text-2xl font-datos text-peligro">{bpm}</p>
-          <p className="text-suave text-[10px]">BPM · FC simulada</p>
+        <div className="bg-tarjeta rounded-2xl p-3">
+          <p className="text-[11px] text-suave tracking-widest">CARDIO</p>
+          <p className="font-datos text-3xl text-peligro mt-1">
+            {bpm}
+            <span className="text-xs text-suave ml-1">BPM</span>
+          </p>
+          <p className="text-[10px] text-lima font-bold mt-1">{zonaCardio(bpm)}</p>
+          <p className="text-[9px] text-suave">FC simulada</p>
         </div>
       </div>
-      <p className="text-center text-xs text-suave">{zonaCardio(bpm)}</p>
 
-      {/* Barra de distancia */}
-      <div className="bg-tarjeta rounded-xl p-3 space-y-2">
-        <div className="flex justify-between font-datos text-sm">
-          <span>{c.distanciaKm.toFixed(2)} / {totalKm.toFixed(2)} km</span>
-          <span>{Math.round(pct)}%</span>
+      {/* Alerta solar */}
+      {alerta && (
+        <div className="bg-peligro/15 border border-peligro rounded-2xl p-3 flex gap-3">
+          <span className="text-peligro text-xl">▲</span>
+          <div>
+            <p className="text-peligro text-[11px] font-bold tracking-wider">ALERTA SOLAR ACTIVA</p>
+            <p className="text-sm">{alerta.mensaje}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Distancia recorrida */}
+      <div className="bg-tarjeta rounded-2xl p-3 space-y-2">
+        <p className="text-[11px] text-suave tracking-widest">DISTANCIA RECORRIDA</p>
+        <div className="flex justify-between items-end">
+          <p className="font-datos text-3xl">
+            {c.distanciaKm.toFixed(2)}
+            <span className="text-sm text-suave"> / {totalKm.toFixed(2)} km</span>
+          </p>
+          <p className="font-datos text-lima">{pct.toFixed(1)}%</p>
         </div>
         <div className="h-2 bg-fondo rounded-full overflow-hidden">
-          <div className="h-full bg-menta" style={{ width: `${pct}%` }} />
+          <div className="h-full bg-menta rounded-full" style={{ width: `${pct}%` }} />
         </div>
-        <p className="text-suave text-xs">{restante.toFixed(2)} km rest.</p>
+        <p className="text-suave text-[11px] text-right">{restante.toFixed(2)} km rest.</p>
       </div>
 
       {/* Botones */}
-      <div className="space-y-2">
+      <div className="flex items-center gap-3">
         {c.estado === "corriendo" ? (
-          <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={c.pausar}>Pausar carrera</button>
+          <button
+            className="flex-1 bg-menta text-fondo font-bold py-4 rounded-full tracking-wide"
+            onClick={c.pausar}
+          >
+            ⏸ PAUSAR CARRERA
+          </button>
         ) : (
-          <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={c.reanudar}>Reanudar</button>
-        )}
-        {(c.estado === "pausada" || llego) && (
-          <button className="w-full bg-peligro text-white font-bold py-3 rounded-xl" onClick={c.finalizar}>Finalizar</button>
-        )}
-        <button className="w-full bg-peligro/30 text-peligro font-bold py-3 rounded-xl" onClick={() => setVerSos(true)}>SOS</button>
-        {gpsSimulado && (
-          <button className="w-full bg-tarjeta py-2 rounded-xl text-sm" onClick={() => c.setVelocidad(5)}>
-            Acelerar ×5 (solo simulación)
+          <button
+            className="flex-1 bg-menta text-fondo font-bold py-4 rounded-full tracking-wide"
+            onClick={c.reanudar}
+          >
+            ▶ REANUDAR
           </button>
         )}
+        <button
+          className="w-14 h-14 rounded-full bg-peligro text-white font-bold text-sm shrink-0"
+          onClick={() => setVerSos(true)}
+        >
+          SOS
+        </button>
       </div>
+      {(c.estado === "pausada" || llego) && (
+        <button
+          className="w-full border border-peligro text-peligro font-bold py-3 rounded-full"
+          onClick={c.finalizar}
+        >
+          Finalizar carrera
+        </button>
+      )}
+      {gpsSimulado && (
+        <button className="w-full text-xs text-suave py-1" onClick={() => c.setVelocidad(5)}>
+          Acelerar ×5 (solo simulación)
+        </button>
+      )}
 
       {/* Ventana SOS */}
       {verSos && (
         <div className="fixed inset-0 bg-black/70 flex items-end justify-center z-[2000]">
-          <div className="bg-tarjeta w-full max-w-md rounded-t-2xl p-4 space-y-3">
+          <div className="bg-tarjeta w-full max-w-md rounded-t-3xl p-4 space-y-3">
             <p className="font-bold text-lg">Emergencia</p>
-            <a href="tel:911" className="block text-center bg-peligro text-white font-bold py-3 rounded-xl">
+            <a href="tel:911" className="block text-center bg-peligro text-white font-bold py-3 rounded-full">
               Llamar al 911
             </a>
             <a
               href={`sms:?&body=${textoSos}`}
-              className={`block text-center bg-menta text-fondo font-bold py-3 rounded-xl ${c.posicion ? "" : "opacity-50 pointer-events-none"}`}
+              className={`block text-center bg-menta text-fondo font-bold py-3 rounded-full ${
+                c.posicion ? "" : "opacity-50 pointer-events-none"
+              }`}
             >
               Enviar mi ubicación por mensaje
             </a>
-            <button className="w-full bg-fondo py-3 rounded-xl" onClick={() => setVerSos(false)}>Cancelar</button>
+            <button className="w-full bg-fondo py-3 rounded-full" onClick={() => setVerSos(false)}>
+              Cancelar
+            </button>
           </div>
         </div>
       )}

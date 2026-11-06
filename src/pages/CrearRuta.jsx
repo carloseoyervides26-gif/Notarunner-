@@ -17,10 +17,16 @@ function formatoRitmo(seg) {
   return `${Math.floor(seg / 60)}'${String(Math.round(seg % 60)).padStart(2, "0")}"`;
 }
 
+// 925 seg -> 00:15:25
 function formatoTiempo(seg) {
   const h = Math.floor(seg / 3600);
   const m = Math.floor((seg % 3600) / 60);
   return [h, m, seg % 60].map((n) => String(n).padStart(2, "0")).join(":");
+}
+
+// 1725 seg -> 28:45
+function formatoMinSeg(seg) {
+  return `${String(Math.floor(seg / 60)).padStart(2, "0")}:${String(seg % 60).padStart(2, "0")}`;
 }
 
 // Trayecto simplificado: una de cada 10 coordenadas
@@ -38,6 +44,19 @@ function geojsonDeTrayecto(trayecto, sombraNivel) {
       },
     ],
   };
+}
+
+// Círculo de selección (como en el Figma)
+function Radio({ activo }) {
+  return (
+    <span
+      className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+        activo ? "border-menta" : "border-suave/50"
+      }`}
+    >
+      {activo && <span className="w-2.5 h-2.5 rounded-full bg-menta" />}
+    </span>
+  );
 }
 
 export default function CrearRuta() {
@@ -114,17 +133,21 @@ export default function CrearRuta() {
   // Estado inicial
   if (c.estado === "inactiva") {
     return (
-      <div className="p-4 space-y-4 text-white">
-        <h2 className="text-2xl font-titulos">Carrera libre</h2>
-        <p className="text-suave">Corre sin una ruta predefinida. Al terminar puedes compartir tu recorrido.</p>
-        <button className="w-full bg-tarjeta py-3 rounded-xl" onClick={() => setGpsSimulado(!gpsSimulado)}>
+      <div className="p-4 flex flex-col min-h-[70vh] text-white">
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
+          <p className="font-datos text-5xl text-suave">00:00:00</p>
+          <p className="text-suave text-sm max-w-xs">
+            Corre sin una ruta predefinida. Al terminar puedes compartir tu recorrido.
+          </p>
+        </div>
+        <button className="text-xs text-suave py-2" onClick={() => setGpsSimulado(!gpsSimulado)}>
           GPS simulado: {gpsSimulado ? "SÍ" : "NO"} (tocar para cambiar)
         </button>
         <button
-          className="w-full bg-menta text-fondo font-bold py-4 rounded-xl"
+          className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
           onClick={() => c.iniciar(rutaCarreraFalsa.geojson)}
         >
-          Iniciar
+          ▶ Iniciar
         </button>
       </div>
     );
@@ -134,90 +157,102 @@ export default function CrearRuta() {
   if (c.estado === "terminada") {
     if (vista === "listo") {
       return (
-        <div className="p-4 space-y-4 text-white text-center">
-          <h2 className="text-2xl font-titulos text-menta">¡Ruta publicada!</h2>
-          <p className="text-suave">Gracias por compartir tu recorrido con la comunidad.</p>
-          <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={salir}>
-            Volver a Explorar
-          </button>
+        <div className="p-4 min-h-[70vh] flex items-center justify-center text-white">
+          <div className="bg-tarjeta rounded-3xl p-6 w-full max-w-sm text-center space-y-4">
+            <h2 className="text-xl font-titulos font-bold text-menta">¡Ruta publicada!</h2>
+            <p className="text-suave text-sm">Gracias por compartir tu recorrido con la comunidad.</p>
+            <button className="w-full bg-menta text-fondo font-bold py-3 rounded-full" onClick={salir}>
+              Volver a Explorar
+            </button>
+          </div>
         </div>
       );
     }
 
     if (vista === "formulario") {
       return (
-        <div className="p-4 space-y-4 text-white">
-          <h2 className="text-2xl font-titulos">Publicar nueva ruta</h2>
+        <div className="p-4 space-y-5 text-white">
+          <button
+            className="bg-tarjeta text-xs rounded-full px-3 py-1.5"
+            onClick={() => setVista("resumen")}
+          >
+            ‹ Publicar nueva ruta
+          </button>
 
           <div>
-            <label className="block text-sm mb-1">Ponle un nombre a tu ruta*</label>
+            <p className="text-sm font-bold mb-2">Ponle un nombre a tu ruta*</p>
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full bg-tarjeta rounded-xl p-3 text-white"
-              placeholder="Ej. Vuelta al parque"
+              className="w-full bg-tarjeta rounded-xl p-3 text-sm text-white placeholder:text-suave outline-none"
+              placeholder="Caracteres y números"
             />
-            {errores.nombre && <p className="text-peligro text-sm mt-1">{errores.nombre}</p>}
+            {errores.nombre && <p className="text-peligro text-xs mt-1">{errores.nombre}</p>}
           </div>
 
           <div>
-            <p className="text-sm mb-1">¿Cuánta sombra tiene este recorrido?*</p>
+            <p className="text-sm font-bold mb-2">¿Cuánta sombra tiene este recorrido?*</p>
             <div className="space-y-2">
               {OPCIONES_SOMBRA.map((o) => (
                 <button
                   key={o.valor}
                   onClick={() => setSombra(o.valor)}
-                  className={`w-full text-left p-3 rounded-xl border ${
-                    sombra === o.valor ? "border-menta bg-menta/10" : "border-suave/30 bg-tarjeta"
-                  }`}
+                  className="w-full flex items-center gap-3 text-left"
                 >
-                  {o.texto}
+                  <Radio activo={sombra === o.valor} />
+                  <span
+                    className={`flex-1 rounded-xl p-3 text-sm border ${
+                      sombra === o.valor ? "border-menta bg-menta/10" : "border-transparent bg-tarjeta"
+                    }`}
+                  >
+                    {o.texto}
+                  </span>
                 </button>
               ))}
             </div>
-            {errores.sombra && <p className="text-peligro text-sm mt-1">{errores.sombra}</p>}
+            {errores.sombra && <p className="text-peligro text-xs mt-1">{errores.sombra}</p>}
           </div>
 
           <div>
-            <p className="text-sm mb-1">¿Encontraste fuentes de agua funcionales?*</p>
+            <p className="text-sm font-bold mb-2">¿Encontraste fuentes de agua funcionales?*</p>
             <div className="grid grid-cols-2 gap-3">
-              {[["si", "Sí"], ["no", "No"]].map(([v, t]) => (
+              {[
+                ["si", "Sí"],
+                ["no", "No"],
+              ].map(([v, t]) => (
                 <button
                   key={v}
                   onClick={() => setFuentes(v)}
-                  className={`p-3 rounded-xl border ${
-                    fuentes === v ? "border-menta bg-menta/10" : "border-suave/30 bg-tarjeta"
+                  className={`p-3 rounded-xl text-sm border ${
+                    fuentes === v ? "border-menta bg-menta/10" : "border-transparent bg-tarjeta"
                   }`}
                 >
                   {t}
                 </button>
               ))}
             </div>
-            {errores.fuentes && <p className="text-peligro text-sm mt-1">{errores.fuentes}</p>}
+            {errores.fuentes && <p className="text-peligro text-xs mt-1">{errores.fuentes}</p>}
           </div>
 
           <div>
-            <label className="block text-sm mb-1">Notas</label>
+            <p className="text-sm font-bold mb-2">Notas</p>
             <textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               rows={3}
-              className="w-full bg-tarjeta rounded-xl p-3 text-white"
-              placeholder="Opcional"
+              className="w-full bg-tarjeta rounded-xl p-3 text-sm text-white placeholder:text-suave outline-none"
+              placeholder="Caracteres y números"
             />
           </div>
 
-          {errorEnvio && <p className="bg-peligro/20 text-peligro rounded-xl p-3">{errorEnvio}</p>}
+          {errorEnvio && <p className="bg-peligro/20 text-peligro rounded-xl p-3 text-sm">{errorEnvio}</p>}
 
           <button
             disabled={enviando}
-            className="w-full bg-menta text-fondo font-bold py-4 rounded-xl disabled:opacity-50"
+            className="w-full bg-menta text-fondo font-bold py-4 rounded-full disabled:opacity-50"
             onClick={publicar}
           >
             {enviando ? "Publicando..." : "Publicar"}
-          </button>
-          <button className="w-full bg-tarjeta py-3 rounded-xl" onClick={() => setVista("resumen")}>
-            Atrás
           </button>
         </div>
       );
@@ -225,21 +260,26 @@ export default function CrearRuta() {
 
     // Resumen + pregunta de compartir
     return (
-      <div className="p-4 space-y-4 text-white">
-        <h2 className="text-2xl font-titulos">¡Carrera finalizada!</h2>
-        <div className="bg-tarjeta rounded-xl p-4 space-y-2 font-datos">
-          <p>Tiempo: {formatoTiempo(c.tiempoSeg)}</p>
-          <p>Distancia: {c.distanciaKm.toFixed(2)} km</p>
-          <p>Ritmo promedio: {formatoRitmo(c.ritmoPromedio)} /km</p>
-        </div>
-        <p className="font-bold">¿Te gustaría compartir esta ruta con la comunidad?</p>
-        <div className="grid grid-cols-2 gap-3">
-          <button className="bg-menta text-fondo font-bold py-3 rounded-xl" onClick={() => setVista("formulario")}>
-            SÍ
-          </button>
-          <button className="bg-tarjeta py-3 rounded-xl" onClick={salir}>
-            No
-          </button>
+      <div className="p-4 min-h-[70vh] flex items-center justify-center text-white">
+        <div className="bg-tarjeta rounded-3xl p-6 w-full max-w-sm text-center space-y-4">
+          <h2 className="text-xl font-titulos font-bold">¡Carrera finalizada!</h2>
+          <div className="font-datos text-lima text-sm space-y-1">
+            <p>Tiempo {formatoMinSeg(c.tiempoSeg)} min</p>
+            <p>Distancia {c.distanciaKm.toFixed(2)} km</p>
+            <p>Ritmo promedio {formatoRitmo(c.ritmoPromedio)} /km</p>
+          </div>
+          <p className="font-bold text-sm pt-2">¿Te gustaría compartir esta ruta con la comunidad?</p>
+          <div className="flex justify-center gap-3">
+            <button
+              className="bg-menta text-fondo font-bold px-8 py-2.5 rounded-full"
+              onClick={() => setVista("formulario")}
+            >
+              Sí
+            </button>
+            <button className="bg-fondo font-bold px-8 py-2.5 rounded-full" onClick={salir}>
+              No
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -247,45 +287,47 @@ export default function CrearRuta() {
 
   // Corriendo o en pausa
   return (
-    <div className="p-4 space-y-4 text-white">
-      {c.estado === "pausada" && <p className="text-center text-lima font-bold">En pausa</p>}
-      {c.error && <p className="bg-peligro/20 text-peligro rounded-xl p-3">{c.error}</p>}
-      {c.avisoPantalla && <p className="bg-lima/20 text-lima rounded-xl p-3 text-sm">{c.avisoPantalla}</p>}
-
-      <div className="bg-tarjeta rounded-xl p-6 text-center">
-        <p className="text-suave text-xs">CRONÓMETRO</p>
-        <p className="text-5xl font-datos">{formatoTiempo(c.tiempoSeg)}</p>
+    <div className="p-4 flex flex-col min-h-[75vh] text-white">
+      <div className="text-center space-y-2">
+        {c.estado === "pausada" && (
+          <p className="inline-block bg-lima/15 text-lima text-xs font-bold px-3 py-1 rounded-full">En pausa</p>
+        )}
+        <p className="font-datos text-5xl tracking-wide">{formatoTiempo(c.tiempoSeg)}</p>
       </div>
+
+      {c.error && <p className="bg-peligro/20 text-peligro rounded-xl p-3 text-sm mt-3">{c.error}</p>}
+      {c.avisoPantalla && <p className="bg-lima/15 text-lima rounded-xl p-3 text-xs mt-3">{c.avisoPantalla}</p>}
+
+      <div className="flex-1 flex flex-col items-center justify-center gap-8 py-6">
+        <div className="text-center">
+          <p className="font-datos text-7xl">{formatoRitmo(c.ritmoPromedio)}</p>
+          <p className="font-datos text-xs text-lima mt-1">Ritmo prom. (/Km)</p>
+        </div>
+        <div className="text-center">
+          <p className="font-datos text-7xl">{c.distanciaKm.toFixed(2)}</p>
+          <p className="font-datos text-xs text-lima mt-1">Distancia (Km)</p>
+        </div>
+      </div>
+
+      {gpsSimulado && (
+        <button className="text-xs text-suave py-2" onClick={() => c.setVelocidad(5)}>
+          Acelerar ×5 (solo simulación)
+        </button>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="text-suave text-xs">RITMO PROM. (/KM)</p>
-          <p className="text-3xl font-datos text-lima">{formatoRitmo(c.ritmoPromedio)}</p>
-        </div>
-        <div className="bg-tarjeta rounded-xl p-3">
-          <p className="text-suave text-xs">DISTANCIA (KM)</p>
-          <p className="text-3xl font-datos">{c.distanciaKm.toFixed(2)}</p>
-        </div>
-      </div>
-
-      <div className="space-y-2">
         {c.estado === "corriendo" ? (
-          <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={c.pausar}>
+          <button className="bg-menta text-fondo font-bold py-4 rounded-full" onClick={c.pausar}>
             Pausar
           </button>
         ) : (
-          <button className="w-full bg-menta text-fondo font-bold py-4 rounded-xl" onClick={c.reanudar}>
+          <button className="bg-menta text-fondo font-bold py-4 rounded-full" onClick={c.reanudar}>
             Reanudar
           </button>
         )}
-        <button className="w-full bg-peligro text-white font-bold py-3 rounded-xl" onClick={c.finalizar}>
+        <button className="bg-tarjeta font-bold py-4 rounded-full" onClick={c.finalizar}>
           Finalizar ›
         </button>
-        {gpsSimulado && (
-          <button className="w-full bg-tarjeta py-2 rounded-xl text-sm" onClick={() => c.setVelocidad(5)}>
-            Acelerar ×5 (solo simulación)
-          </button>
-        )}
       </div>
     </div>
   );
