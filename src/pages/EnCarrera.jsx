@@ -86,7 +86,7 @@ export default function EnCarrera() {
   const totalKm = largoRutaKm(ruta.geojson);
   const pct = Math.min(100, (c.distanciaKm / totalKm) * 100);
   const restante = Math.max(0, totalKm - c.distanciaKm);
-  const llego = c.estado === "corriendo" && c.distanciaKm >= totalKm;
+  const llego = c.estado === "corriendo" && c.distanciaKm >= totalKm - 0.03; // tolerancia de 30 m
   const giro = instruccionGiro(c.posicion, ruta.geojson);
   const alerta = c.posicion ? evaluarAlertaEnCarrera(c.posicion, ruta.geojson, contexto) : null;
 

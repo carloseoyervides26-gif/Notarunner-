@@ -81,7 +81,7 @@ export function crearGpsSimulado(polilinea) {
       if (polilinea.length < 2) return;
       timer = setInterval(() => {
         metros += (10 / 3.6) * mult; // 10 km/h = 2.78 m/s
-        onPunto({ ...puntoEn(metros), precision: 5, t: Date.now() });
+        onPunto({ ...puntoEn(metros), precision: 5, t: Date.now(), simulado: true });
       }, 1000);
     },
     detener() {

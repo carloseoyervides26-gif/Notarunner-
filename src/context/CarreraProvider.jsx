@@ -74,7 +74,7 @@ export default function CarreraProvider({ children }) {
     if (ant) {
       const km = haversineKm(ant, p);
       const seg = (p.t - ant.t) / 1000;
-      if (seg > 0 && (km * 1000) / seg > 12) return; // salto imposible
+      if (!p.simulado && seg > 0 && (km * 1000) / seg > 12) return; // salto imposible (no aplica al GPS simulado)
       kmRef.current += km;
       setDistanciaKm(kmRef.current);
     }
