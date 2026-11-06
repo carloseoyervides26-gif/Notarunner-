@@ -75,7 +75,11 @@ export default function MapaRuta({ geojson, posicion, trayecto = [], altura = 26
     : [25.6866, -100.3161]; // centro de Monterrey
 
   return (
-    <div style={{ height: altura }} className="rounded-xl overflow-hidden">
+    // isolation + zIndex 0: los z-index internos de Leaflet no tapan paneles ni ventanas
+    <div
+      style={{ height: altura, position: "relative", zIndex: 0, isolation: "isolate" }}
+      className="rounded-xl overflow-hidden"
+    >
       <style>{`.mapa-oscuro{filter:invert(1) hue-rotate(180deg) brightness(.9) contrast(.9) saturate(.6)}`}</style>
       <MapContainer
         center={centro}
