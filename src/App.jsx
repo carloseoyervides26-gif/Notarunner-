@@ -12,7 +12,6 @@ import Perfil from './pages/Perfil'
 import ProgramarCarrera from './pages/ProgramarCarrera'
 import CrearRuta from './pages/CrearRuta'
 import PruebaComponentes from './components/PruebaComponentes'
-import PruebaGps from './pages/PruebaGps' // TEMPORAL (Persona 4): borrar antes del PR
 
 export default function App() {
   return (
@@ -34,7 +33,6 @@ export default function App() {
           <Route path="/programar" element={<ProgramarCarrera />} />
           <Route path="/crear-ruta" element={<CrearRuta />} />
           <Route path="/prueba" element={<PruebaComponentes />} />
-          <Route path="/prueba-gps" element={<PruebaGps />} /> {/* TEMPORAL (Persona 4) */}
         </Route>
       </Route>
 
