@@ -97,7 +97,7 @@ export async function obtenerContextoReal(lat, lng, ciudad = 'Monterrey, NL') {
     const datos = armarContexto(clima, aire, lat, lng, ciudad)
     cache = { clave, guardado: Date.now(), datos }
     return datos
-  } catch (error) {
+  } catch {
     // Si falla el internet pero hay datos guardados, se usan y se marca el aviso
     if (cache) return { ...cache.datos, desactualizado: true }
     throw new Error('No se pudo obtener el clima. Revisa tu conexión a internet.')

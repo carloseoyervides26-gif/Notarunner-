@@ -1,1 +1,571 @@
-[]
+[
+  {
+    "id": "parque-fundidora",
+    "nombre": "Parque Fundidora",
+    "descripcion": "Circuito amplio con árboles y fuentes. Ideal para correr con calor.",
+    "distancia_km": 5,
+    "desnivel_m": 45,
+    "superficie": "Asfalto y tartán",
+    "sombra_pct": 82,
+    "fuentes_agua": 2,
+    "iluminacion_pct": 90,
+    "puntos_medicos": 1,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": 25.6786,
+    "lng_inicio": -100.2845,
+    "geojson": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "alta"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.2845,
+                25.6786
+              ],
+              [
+                -100.282,
+                25.6795
+              ],
+              [
+                -100.2795,
+                25.6803
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "baja"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.2795,
+                25.6803
+              ],
+              [
+                -100.277,
+                25.6812
+              ],
+              [
+                -100.275,
+                25.682
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "alta"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.275,
+                25.682
+              ],
+              [
+                -100.279,
+                25.683
+              ],
+              [
+                -100.2845,
+                25.6786
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Fuente principal"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.282,
+              25.6795
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Fuente lago"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.277,
+              25.6812
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "bano",
+            "nombre": "Baños centrales"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.28,
+              25.68
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "medico",
+            "nombre": "Módulo médico"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.2845,
+              25.6786
+            ]
+          }
+        }
+      ]
+    },
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mucha_sombra",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": null,
+    "trazo_aproximado": true
+  },
+  {
+    "id": "calzada-san-pedro",
+    "nombre": "Calzada San Pedro",
+    "descripcion": "Ruta corta y plana, con poca sombra. Mejor en la mañana temprano.",
+    "distancia_km": 3,
+    "desnivel_m": 12,
+    "superficie": "Concreto",
+    "sombra_pct": 25,
+    "fuentes_agua": 1,
+    "iluminacion_pct": 60,
+    "puntos_medicos": 0,
+    "solo_am": true,
+    "aviso_horario": "Sol directo después de las 11:00 AM",
+    "lat_inicio": 25.657,
+    "lng_inicio": -100.368,
+    "geojson": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "baja"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.368,
+                25.657
+              ],
+              [
+                -100.365,
+                25.658
+              ],
+              [
+                -100.362,
+                25.659
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "alta"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.362,
+                25.659
+              ],
+              [
+                -100.36,
+                25.6595
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "baja"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.36,
+                25.6595
+              ],
+              [
+                -100.364,
+                25.658
+              ],
+              [
+                -100.368,
+                25.657
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Bebedero plaza"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.365,
+              25.658
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "bano",
+            "nombre": "Baños públicos"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.362,
+              25.659
+            ]
+          }
+        }
+      ]
+    },
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "sol_total",
+    "fuentes_funcionales": true,
+    "notas": "Se llena de gente los fines de semana.",
+    "creada_por": null,
+    "direccion": null,
+    "trazo_aproximado": true
+  },
+  {
+    "id": "parque-rio-la-silla",
+    "nombre": "Parque Río La Silla",
+    "descripcion": "Recorrido largo junto al río, con tramos de sombra y buena iluminación.",
+    "distancia_km": 10,
+    "desnivel_m": 80,
+    "superficie": "Pavimento y terracería",
+    "sombra_pct": 55,
+    "fuentes_agua": 4,
+    "iluminacion_pct": 85,
+    "puntos_medicos": 2,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": 25.635,
+    "lng_inicio": -100.255,
+    "geojson": {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "alta"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.255,
+                25.635
+              ],
+              [
+                -100.25,
+                25.637
+              ],
+              [
+                -100.245,
+                25.639
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "baja"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.245,
+                25.639
+              ],
+              [
+                -100.24,
+                25.641
+              ],
+              [
+                -100.235,
+                25.642
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "sombra": "alta"
+          },
+          "geometry": {
+            "type": "LineString",
+            "coordinates": [
+              [
+                -100.235,
+                25.642
+              ],
+              [
+                -100.245,
+                25.638
+              ],
+              [
+                -100.255,
+                25.635
+              ]
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Fuente entrada"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.255,
+              25.635
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Fuente km 3"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.25,
+              25.637
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "agua",
+            "nombre": "Fuente km 6"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.24,
+              25.641
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "bano",
+            "nombre": "Baños km 5"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.243,
+              25.6395
+            ]
+          }
+        },
+        {
+          "type": "Feature",
+          "properties": {
+            "tipo": "medico",
+            "nombre": "Puesto médico"
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              -100.255,
+              25.635
+            ]
+          }
+        }
+      ]
+    },
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": null,
+    "trazo_aproximado": true
+  },
+  {
+    "id": "calzada-del-valle",
+    "nombre": "Calzada del Valle",
+    "descripcion": "Circuito de 5 km por el camellón de Calzada del Valle, en San Pedro Garza García.",
+    "distancia_km": 5,
+    "desnivel_m": 0,
+    "superficie": null,
+    "sombra_pct": 0,
+    "fuentes_agua": 0,
+    "iluminacion_pct": null,
+    "puntos_medicos": 0,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": null,
+    "lng_inicio": null,
+    "geojson": null,
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": "Calzada del Valle, San Pedro Garza García, N.L.",
+    "trazo_aproximado": false
+  },
+  {
+    "id": "parque-lineal-escobedo",
+    "nombre": "Parque Lineal Escobedo",
+    "descripcion": "Circuito de 7.5 km por el parque lineal de Av. Las Torres, en Escobedo.",
+    "distancia_km": 7.5,
+    "desnivel_m": 0,
+    "superficie": null,
+    "sombra_pct": 0,
+    "fuentes_agua": 0,
+    "iluminacion_pct": null,
+    "puntos_medicos": 0,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": null,
+    "lng_inicio": null,
+    "geojson": null,
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": "Av. Las Torres, Col. 15, 66056 Cd. Gral. Escobedo, N.L.",
+    "trazo_aproximado": false
+  },
+  {
+    "id": "vista-pista-jacinto-diaz",
+    "nombre": "Parque Vista Pista Jacinto Díaz",
+    "descripcion": "Circuito corto de 1 km, ideal para series o para caminar.",
+    "distancia_km": 1,
+    "desnivel_m": 0,
+    "superficie": null,
+    "sombra_pct": 0,
+    "fuentes_agua": 0,
+    "iluminacion_pct": null,
+    "puntos_medicos": 0,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": null,
+    "lng_inicio": null,
+    "geojson": null,
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": "Gral. Lázaro Cárdenas 406-402, Residencial Periférico, 66420 San Nicolás de los Garza, N.L.",
+    "trazo_aproximado": false
+  },
+  {
+    "id": "parque-lineal-republica-mexicana",
+    "nombre": "Parque Lineal Av. República Mexicana",
+    "descripcion": "Circuito de 4 km por el parque lineal de Av. República Mexicana.",
+    "distancia_km": 4,
+    "desnivel_m": 0,
+    "superficie": null,
+    "sombra_pct": 0,
+    "fuentes_agua": 0,
+    "iluminacion_pct": null,
+    "puntos_medicos": 0,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": 25.770361,
+    "lng_inicio": -100.272306,
+    "geojson": null,
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": "25°46'13.3\"N 100°16'20.3\"W",
+    "trazo_aproximado": false
+  },
+  {
+    "id": "parque-ninos-heroes",
+    "nombre": "Parque Niños Héroes",
+    "descripcion": "Circuito de 2.1 km dentro del Parque Niños Héroes, en Monterrey.",
+    "distancia_km": 2.1,
+    "desnivel_m": 0,
+    "superficie": null,
+    "sombra_pct": 0,
+    "fuentes_agua": 0,
+    "iluminacion_pct": null,
+    "puntos_medicos": 0,
+    "solo_am": false,
+    "aviso_horario": null,
+    "lat_inicio": null,
+    "lng_inicio": null,
+    "geojson": null,
+    "imagen_url": null,
+    "publica": true,
+    "sombra_nivel": "mixta",
+    "fuentes_funcionales": true,
+    "notas": null,
+    "creada_por": null,
+    "direccion": "Niños Héroes, 64290 Monterrey, N.L.",
+    "trazo_aproximado": false
+  }
+]

@@ -1,7 +1,8 @@
 // Ayudante: pide datos y devuelve { datos, cargando, error, recargar }
 import { useEffect, useState } from 'react'
 
-export default function usarCarga(funcion) {
+// Se llama useCarga porque usa hooks de React
+export default function useCarga(funcion) {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -10,14 +11,12 @@ export default function usarCarga(funcion) {
 
   useEffect(() => {
     let vivo = true
-    setCargando(true)
-    setError('')
     funcion()
       .then((d) => {
         if (vivo) setDatos(d)
       })
-      .catch(() => {
-        if (vivo) setError('No pudimos cargar esta información.')
+      .catch((e) => {
+        if (vivo) setError(e?.message || 'No pudimos cargar esta información.')
       })
       .finally(() => {
         if (vivo) setCargando(false)
@@ -28,5 +27,12 @@ export default function usarCarga(funcion) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intento])
 
-  return { datos, cargando, error, recargar: () => setIntento((n) => n + 1) }
+  // Volver a pedir: marca "cargando" y repite la consulta
+  function recargar() {
+    setCargando(true)
+    setError('')
+    setIntento((n) => n + 1)
+  }
+
+  return { datos, cargando, error, recargar }
 }

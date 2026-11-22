@@ -1,8 +1,7 @@
 // Aviso de próxima carrera: si hay un itinerario en las próximas 24 horas,
 // muestra la hora y el pronóstico de esa hora con su nivel de riesgo.
 import { useEffect, useState } from 'react'
-// Cuando db.js tenga getItinerarios, cambia esta línea a '../../services/db'
-import { getItinerarios } from '../../mocks/itinerarios'
+import { getItinerarios } from '../../services/db'
 import { evaluarRiesgo } from '../../engine/motorAdaptativo'
 
 const COLORES = {

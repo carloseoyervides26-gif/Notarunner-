@@ -4,13 +4,12 @@ import Cargando from '../Cargando'
 import MensajeError from '../MensajeError'
 import Boton from '../Boton'
 import HojaFlotante from '../HojaFlotante'
-import usarCarga from './usarCarga'
+import useCarga from './useCarga'
 import { formatearItinerario } from './formato'
-// Cuando db.js tenga estas funciones, cambia a '../../services/db'
-import { getItinerarios, borrarItinerario } from '../../mocks/itinerarios'
+import { getItinerarios, borrarItinerario } from '../../services/db'
 
 export default function ListaItinerarios({ userId }) {
-  const { datos, cargando, error, recargar } = usarCarga(() => getItinerarios(userId))
+  const { datos, cargando, error, recargar } = useCarga(() => getItinerarios(userId))
   // El itinerario que se quiere borrar (pide confirmación primero)
   const [porBorrar, setPorBorrar] = useState(null)
   const [borrando, setBorrando] = useState(false)

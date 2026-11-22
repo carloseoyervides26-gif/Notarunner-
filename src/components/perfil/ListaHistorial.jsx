@@ -1,13 +1,12 @@
 // Pestaña "Mi historial": carreras terminadas
 import Cargando from '../Cargando'
 import MensajeError from '../MensajeError'
-import usarCarga from './usarCarga'
+import useCarga from './useCarga'
 import { formatearFechaHora, formatearTiempo, formatearRitmo } from './formato'
-// Cuando db.js tenga getCarreras, cambia a '../../services/db'
-import { getCarreras } from '../../mocks/dbFalsa'
+import { getCarreras } from '../../services/db'
 
 export default function ListaHistorial({ userId }) {
-  const { datos, cargando, error, recargar } = usarCarga(() => getCarreras(userId))
+  const { datos, cargando, error, recargar } = useCarga(() => getCarreras(userId))
 
   if (cargando) return <Cargando texto="Cargando tu historial…" />
   if (error) return <MensajeError texto={error} alReintentar={recargar} />

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCarrera } from "../context/CarreraProvider";
 import { useContexto } from "../context/ContextoProvider";
+// Solo se usa como camino del GPS simulado (modo demostración)
 import { rutaCarreraFalsa } from "../mocks/rutaCarrera";
 import { guardarCarreraSeguro, publicarRutaSeguro } from "../services/guardadoP4";
 
@@ -61,7 +62,7 @@ function Radio({ activo }) {
 
 export default function CrearRuta() {
   const c = useCarrera();
-  const { gpsSimulado, setGpsSimulado, sensacionTermica } = useContexto();
+  const { gpsSimulado, sensacionTermica } = useContexto();
   const navigate = useNavigate();
 
   const [vista, setVista] = useState("resumen"); // resumen | formulario | listo
@@ -84,6 +85,7 @@ export default function CrearRuta() {
     guardada.current = true;
     guardarCarreraSeguro({
       route_id: null, // carrera libre
+      ruta_nombre: "Carrera libre",
       inicio: new Date(Date.now() - c.tiempoSeg * 1000).toISOString(),
       fin: new Date().toISOString(),
       duracion_seg: c.tiempoSeg,
@@ -140,9 +142,6 @@ export default function CrearRuta() {
             Corre sin una ruta predefinida. Al terminar puedes compartir tu recorrido.
           </p>
         </div>
-        <button className="text-xs text-suave py-2" onClick={() => setGpsSimulado(!gpsSimulado)}>
-          GPS simulado: {gpsSimulado ? "SÍ" : "NO"} (tocar para cambiar)
-        </button>
         <button
           className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
           onClick={() => c.iniciar(rutaCarreraFalsa.geojson)}

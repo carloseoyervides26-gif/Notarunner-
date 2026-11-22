@@ -1,9 +1,8 @@
 // "Mi impacto": km recorridos, rutas compartidas y semanas de racha
 import Cargando from '../Cargando'
 import MensajeError from '../MensajeError'
-import usarCarga from './usarCarga'
-// Cuando db.js tenga getEstadisticas, cambia a '../../services/db'
-import { getEstadisticas } from '../../mocks/dbFalsa'
+import useCarga from './useCarga'
+import { getEstadisticas } from '../../services/db'
 
 function Dato({ valor, etiqueta }) {
   return (
@@ -15,7 +14,7 @@ function Dato({ valor, etiqueta }) {
 }
 
 export default function ChipsImpacto({ userId }) {
-  const { datos, cargando, error, recargar } = usarCarga(() => getEstadisticas(userId))
+  const { datos, cargando, error, recargar } = useCarga(() => getEstadisticas(userId))
 
   return (
     <section>
