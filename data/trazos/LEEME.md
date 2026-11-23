@@ -18,7 +18,7 @@
 |---|---|
 | Calzada del Valle | `calzada-del-valle.geojson` |
 | Parque Lineal Escobedo | `parque-lineal-escobedo.geojson` |
-| Parque Vista Pista Jacinto Díaz | `vista-pista-jacinto-diaz.geojson` |
+| Vita Pista Jacinto Díaz | `vista-pista-jacinto-diaz.geojson` |
 | Parque Lineal Av. República Mexicana | `parque-lineal-republica-mexicana.geojson` |
 | Parque Niños Héroes | `parque-ninos-heroes.geojson` |
 | Parque Fundidora | `parque-fundidora.geojson` |
