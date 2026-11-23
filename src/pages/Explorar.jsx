@@ -16,8 +16,8 @@ export default function Explorar() {
   const contexto = useContexto()
   const navigate = useNavigate()
 
-  // Distancia elegida: 3, 5, 10 o 'personalizado'
-  const [opcion, setOpcion] = useState(5)
+  // Distancia elegida: 'todas', 3, 5, 10 o 'personalizado'
+  const [opcion, setOpcion] = useState('todas')
   const [textoDistancia, setTextoDistancia] = useState('')
   // Ubicación del usuario (la usa el ranking de rutas)
   const [ubicacion, setUbicacion] = useState(null)

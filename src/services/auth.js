@@ -1,86 +1,65 @@
-// VERSIÓN FALSA de auth.js. La Persona 5 la cambia por Supabase.
-// IMPORTANTE: mantener los mismos nombres y parámetros (CONTRATO 4).
-import { useEffect, useState } from 'react'
+// Registro, inicio de sesión y hook useAuth (CONTRATO 4) con Supabase Auth
+import { cliente } from './supabase'
+import { useSesion } from '../context/AuthProvider'
 
-// Datos de prueba
-const USUARIO_PRUEBA = { id: 'usuario-prueba-1', email: 'prueba@notarunner.mx' }
-const PERFIL_PRUEBA = {
-  id: 'usuario-prueba-1',
-  nombre: 'Jimena Morales',
-  ciudad: 'Monterrey, Nuevo León',
-  foto_url: null,
+// Traduce los errores de Supabase (vienen en inglés) a mensajes claros
+function traducir(error, porDefecto) {
+  const m = (error?.message || '').toLowerCase()
+  if (m.includes('invalid login credentials')) return 'Correo o contraseña incorrectos.'
+  if (m.includes('already registered') || m.includes('already exists'))
+    return 'Ya existe una cuenta con ese correo.'
+  if (m.includes('email not confirmed'))
+    return 'Confirma tu correo antes de entrar. Revisa tu bandeja de entrada.'
+  if (m.includes('password should be at least') || m.includes('weak password'))
+    return 'Tu contraseña debe tener al menos 6 caracteres.'
+  if (m.includes('invalid') && m.includes('email')) return 'Revisa tu correo. Debe verse así: nombre@correo.com'
+  if (m.includes('rate limit') || m.includes('security purposes'))
+    return 'Hiciste muchos intentos. Espera un minuto y vuelve a intentar.'
+  if (m.includes('failed to fetch') || m.includes('network'))
+    return 'No hay conexión a internet. Revisa tu conexión e intenta de nuevo.'
+  if (error?.message?.startsWith('Falta configurar')) return error.message
+  return porDefecto
 }
 
-// La sesión falsa se guarda en el navegador
-const CLAVE = 'sesionFalsa'
-const EVENTO = 'cambio-sesion-falsa'
-
-// ¿Hay sesión? Por defecto sí (usuario de prueba)
-function haySesion() {
-  try {
-    return localStorage.getItem(CLAVE) !== 'cerrada'
-  } catch {
-    return true
-  }
-}
-
-// Abre o cierra la sesión y avisa a la app
-function guardarSesion(activa) {
-  try {
-    if (activa) localStorage.removeItem(CLAVE)
-    else localStorage.setItem(CLAVE, 'cerrada')
-  } catch {
-    // Si el navegador no deja guardar, no pasa nada
-  }
-  window.dispatchEvent(new Event(EVENTO))
-}
-
-// Simula que tarda como si fuera internet
-const esperar = (ms) => new Promise((listo) => setTimeout(listo, ms))
-
-// ciudad es opcional (pendiente de acordar con la Persona 5)
+// Crea la cuenta. Devuelve { usuario, necesitaConfirmar }
 export async function registrar(nombre, correo, password, ciudad = 'Monterrey, Nuevo León') {
-  await esperar(500)
-  if (!nombre || !correo || !password) {
-    throw new Error('Completa todos los campos.')
+  try {
+    const { data, error } = await cliente().auth.signUp({
+      email: correo,
+      password,
+      options: { data: { nombre, ciudad } },
+    })
+    if (error) throw error
+    // Supabase no avisa si el correo ya existía: lo detectamos así
+    if (data.user && data.user.identities?.length === 0) {
+      throw new Error('already registered')
+    }
+    return { usuario: data.user, necesitaConfirmar: !data.session }
+  } catch (e) {
+    throw new Error(traducir(e, 'No pudimos crear tu cuenta. Intenta de nuevo.'), { cause: e })
   }
-  guardarSesion(true)
-  return { ...USUARIO_PRUEBA, email: correo }
 }
 
 export async function iniciarSesion(correo, password) {
-  await esperar(500)
-  // Para probar errores: escribe "error" como contraseña
-  if (password === 'error') {
-    throw new Error('Correo o contraseña incorrectos.')
+  try {
+    const { data, error } = await cliente().auth.signInWithPassword({ email: correo, password })
+    if (error) throw error
+    return data.user
+  } catch (e) {
+    throw new Error(traducir(e, 'No pudimos iniciar sesión. Intenta de nuevo.'), { cause: e })
   }
-  guardarSesion(true)
-  return { ...USUARIO_PRUEBA, email: correo }
 }
 
 export async function cerrarSesion() {
-  await esperar(200)
-  guardarSesion(false)
+  try {
+    const { error } = await cliente().auth.signOut()
+    if (error) throw error
+  } catch (e) {
+    throw new Error(traducir(e, 'No pudimos cerrar tu sesión. Intenta de nuevo.'), { cause: e })
+  }
 }
 
 // Hook: devuelve { usuario, perfil, cargando }
 export function useAuth() {
-  const [cargando, setCargando] = useState(true)
-  const [activa, setActiva] = useState(haySesion)
-
-  useEffect(() => {
-    const temporizador = setTimeout(() => setCargando(false), 300)
-    const actualizar = () => setActiva(haySesion())
-    window.addEventListener(EVENTO, actualizar)
-    return () => {
-      clearTimeout(temporizador)
-      window.removeEventListener(EVENTO, actualizar)
-    }
-  }, [])
-
-  return {
-    usuario: activa ? USUARIO_PRUEBA : null,
-    perfil: activa ? PERFIL_PRUEBA : null,
-    cargando,
-  }
+  return useSesion()
 }

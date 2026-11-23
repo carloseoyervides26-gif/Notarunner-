@@ -1,20 +1,18 @@
-// Pestaña "Mis reportes". Cuando la Persona 5 termine TarjetaReporte,
-// se puede cambiar el <li> de abajo por ese componente.
+// Pestaña "Mis comentarios": lo que el usuario publicó en Comunidad
 import Cargando from '../Cargando'
 import MensajeError from '../MensajeError'
 import Chip from '../Chip'
-import usarCarga from './usarCarga'
+import useCarga from './useCarga'
 import { formatearFechaHora } from './formato'
-// Cuando db.js tenga getMisReportes, cambia a '../../services/db'
-import { getMisReportes } from '../../mocks/dbFalsa'
+import { getMisReportes } from '../../services/db'
 
 export default function ListaReportes({ userId }) {
-  const { datos, cargando, error, recargar } = usarCarga(() => getMisReportes(userId))
+  const { datos, cargando, error, recargar } = useCarga(() => getMisReportes(userId))
 
-  if (cargando) return <Cargando texto="Cargando tus reportes…" />
+  if (cargando) return <Cargando texto="Cargando tus comentarios…" />
   if (error) return <MensajeError texto={error} alReintentar={recargar} />
   if (!datos || datos.length === 0) {
-    return <p className="text-suave text-sm text-center py-6">Aún no has hecho reportes.</p>
+    return <p className="text-suave text-sm text-center py-6">Aún no has publicado comentarios. Puedes hacerlo en Comunidad.</p>
   }
 
   return (

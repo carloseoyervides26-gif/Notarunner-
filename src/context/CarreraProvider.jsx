@@ -3,6 +3,7 @@ import { useContexto } from "./ContextoProvider";
 import { crearGpsReal, crearGpsSimulado, extraerPolilinea, haversineKm } from "../services/gps";
 
 const CarreraCtx = createContext(null);
+// eslint-disable-next-line react-refresh/only-export-components
 export const useCarrera = () => useContext(CarreraCtx);
 
 export default function CarreraProvider({ children }) {

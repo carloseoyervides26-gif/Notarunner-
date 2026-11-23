@@ -1,1 +1,4 @@
--- Datos iniciales de prueba
+-- No hace falta sembrar datos:
+-- las rutas oficiales viven en data/rutas.json y los comentarios
+-- "Agregado por la aplicación" se generan en la app a partir de esas rutas.
+-- Los usuarios, carreras y comentarios se crean al usar la app.

@@ -1,6 +1,7 @@
-// Tarjeta de una ruta: etiquetas, foto, datos y botón para comenzar
+// Tarjeta de una ruta: etiquetas, dibujo del circuito, datos y botón para comenzar
 import Chip from '../Chip'
 import Boton from '../Boton'
+import VistaPreviaRuta from './VistaPreviaRuta'
 
 // Elige el color de cada etiqueta según su texto
 function colorEtiqueta(texto) {
@@ -40,22 +41,15 @@ export default function TarjetaRuta({ ruta, alComenzar }) {
         </p>
       )}
 
-      {/* Foto (si no hay, un fondo de respaldo) */}
-      {ruta.imagen_url ? (
-        <img
-          src={ruta.imagen_url}
-          alt={ruta.nombre}
-          className="w-full h-40 object-cover"
-        />
-      ) : (
-        <div className="w-full h-40 bg-fondo flex items-center justify-center text-suave text-sm">
-          Sin foto
-        </div>
-      )}
+      {/* Dibujo del circuito: verde = sombra, naranja = sol */}
+      <VistaPreviaRuta geojson={ruta.geojson} nombre={ruta.nombre} />
 
       <div className="p-4 space-y-3">
         <p className="font-datos text-menta text-sm">
-          {ruta.distancia_km.toFixed(1)} KM
+          {Number(ruta.distancia_km).toFixed(1)} KM · CIRCUITO
+          {ruta.distanciaKm !== null && ruta.distanciaKm !== undefined && (
+            <span className="text-suave"> · A {ruta.distanciaKm} KM DE TI</span>
+          )}
         </p>
         <div>
           <h3 className="font-titulos font-bold text-xl">{ruta.nombre}</h3>
@@ -63,7 +57,7 @@ export default function TarjetaRuta({ ruta, alComenzar }) {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <Dato titulo="Superficie" valor={ruta.superficie} />
+          <Dato titulo="Superficie" valor={ruta.superficie || 'Sin dato'} />
           <Dato titulo="Hidratación" valor={`${ruta.fuentes_agua} fuentes`} />
           <Dato titulo="Protege" valor={`${ruta.sombra_pct}% sombra`} />
         </div>

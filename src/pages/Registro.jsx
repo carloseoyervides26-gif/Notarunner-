@@ -24,6 +24,8 @@ export default function Registro() {
   const [errores, setErrores] = useState({})
   const [errorGeneral, setErrorGeneral] = useState('')
   const [enviando, setEnviando] = useState(false)
+  // Si Supabase pide confirmar el correo, mostramos un aviso
+  const [porConfirmar, setPorConfirmar] = useState(false)
 
   if (cargando) return <Cargando texto="Revisando tu sesión…" />
   if (usuario) return <Navigate to="/" replace />
@@ -68,7 +70,12 @@ export default function Registro() {
 
     setEnviando(true)
     try {
-       await registrar(nombre.trim(), correo.trim(), password, ciudad.trim())
+      const { necesitaConfirmar } = await registrar(nombre.trim(), correo.trim(), password, ciudad.trim())
+      if (necesitaConfirmar) {
+        setPorConfirmar(true)
+        setEnviando(false)
+        return
+      }
       navegar('/', { replace: true })
     } catch (err) {
       setErrorGeneral(
@@ -143,6 +150,12 @@ export default function Registro() {
         </label>
 
         {errorGeneral && <MensajeError texto={errorGeneral} />}
+        {porConfirmar && (
+          <p role="status" className="rounded-2xl border border-menta/50 bg-menta/10 p-4 text-sm">
+            ¡Cuenta creada! Te enviamos un correo para confirmarla. Ábrelo y después{' '}
+            <Link to="/login" className="text-menta font-bold underline">inicia sesión</Link>.
+          </p>
+        )}
 
         <Boton type="submit" cargando={enviando}>
           Crear cuenta

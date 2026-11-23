@@ -4,7 +4,9 @@ import { useCarrera } from "../context/CarreraProvider";
 import { useContexto } from "../context/ContextoProvider";
 import MapaRuta from "../components/carrera/MapaRuta";
 import { extraerPolilinea, haversineKm } from "../services/gps";
-import { buscarRuta, rutasFalsas } from "../mocks/rutaCarrera";
+import useRuta from "../components/carrera/useRuta";
+import Cargando from "../components/Cargando";
+import MensajeError from "../components/MensajeError";
 import { evaluarRiesgo, generarChecklist, elegirRutaAlterna } from "../engine/motorAdaptativo";
 
 // Rango de km donde hay tramos sin sombra: [inicio, fin] o null
@@ -58,19 +60,40 @@ export default function RutaActiva() {
   const navigate = useNavigate();
   const c = useCarrera();
   const contexto = useContexto();
-  const { gpsSimulado, setGpsSimulado, uv, temperatura } = contexto;
+  const { gpsSimulado, uv, temperatura } = contexto;
 
-  // TODO: cuando exista getRuta(id) de la Persona 5, usarla aquí
-  const rutaOriginal = buscarRuta(id || localStorage.getItem("ruta_activa_id"));
+  // La ruta elegida en Explorar (por la dirección o la última guardada)
+  const idRuta = id || localStorage.getItem("ruta_activa_id");
+  const { ruta: rutaOriginal, rutas, cargando, error, recargar } = useRuta(idRuta);
+
+  const [usarAlterna, setUsarAlterna] = useState(false);
+  const [marcados, setMarcados] = useState({});
+  const [aviso, setAviso] = useState("");
+
+  if (cargando) return <Cargando texto="Cargando la ruta…" />;
+  if (error) return <div className="p-4"><MensajeError texto={error} alReintentar={recargar} /></div>;
+  if (!rutaOriginal) {
+    return (
+      <div className="p-4 space-y-4 text-white">
+        <div className="bg-tarjeta rounded-2xl p-5 text-center space-y-1">
+          <p className="font-bold">Todavía no eliges una ruta</p>
+          <p className="text-suave text-sm">Ve a Explorar y toca «Comenzar ruta» en la que quieras correr.</p>
+        </div>
+        <button
+          className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
+          onClick={() => navigate("/")}
+        >
+          Ir a Explorar
+        </button>
+      </div>
+    );
+  }
 
   const riesgo = evaluarRiesgo(contexto);
-  const alterna = riesgo.nivel >= 2 ? elegirRutaAlterna(rutaOriginal, rutasFalsas, contexto) : null;
-  const [usarAlterna, setUsarAlterna] = useState(false);
+  const alterna = riesgo.nivel >= 2 ? elegirRutaAlterna(rutaOriginal, rutas, contexto) : null;
   const ruta = usarAlterna && alterna ? alterna : rutaOriginal;
 
   const items = generarChecklist(contexto);
-  const [marcados, setMarcados] = useState({});
-  const [aviso, setAviso] = useState("");
 
   const distanciaKm = ruta.distancia_km ?? largoKm(ruta.geojson);
   const minutos = Math.round(distanciaKm * 6); // ritmo base 6:00 min/km
@@ -117,12 +140,13 @@ export default function RutaActiva() {
       {/* Tarjeta del circuito */}
       <div className="bg-tarjeta rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
-          <p className="text-lima text-[11px] font-bold tracking-widest">◉ CIRCUITO ACTIVO</p>
+          <p className="text-lima text-[11px] font-bold tracking-widest">◉ RUTA SELECCIONADA</p>
           <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${chipClase}`}>{condicion}</span>
         </div>
         <div>
           <h2 className="text-xl font-titulos font-bold">{ruta.nombre}</h2>
           {ruta.descripcion && <p className="text-suave text-sm mt-1">{ruta.descripcion}</p>}
+          {ruta.direccion && <p className="text-suave text-xs mt-1">📍 {ruta.direccion}</p>}
         </div>
         <div className="grid grid-cols-4 gap-2 pt-1">
           {[
@@ -217,8 +241,8 @@ export default function RutaActiva() {
         </div>
         <MapaRuta geojson={ruta.geojson} altura={200} />
         <div className="flex gap-2 text-[11px]">
-          <span className="bg-fondo rounded-full px-3 py-1.5 text-cian">💧 {nAgua} Puntos de Agua Activos</span>
-          <span className="bg-fondo rounded-full px-3 py-1.5 text-suave">➕ {nMedico} Servicio</span>
+          <span className="bg-fondo rounded-full px-3 py-1.5 text-cian">💧 {nAgua} {nAgua === 1 ? "Punto de agua" : "Puntos de agua"}</span>
+          <span className="bg-fondo rounded-full px-3 py-1.5 text-suave">➕ {nMedico} {nMedico === 1 ? "Servicio médico" : "Servicios médicos"}</span>
         </div>
       </div>
 
@@ -267,11 +291,9 @@ export default function RutaActiva() {
       >
         ▶ Iniciar Carrera
       </button>
-      <p className="text-center text-[11px] text-suave">Todo listo: GPS y frecuencia cardíaca sincronizados</p>
-
-      <button className="w-full text-xs text-suave py-1" onClick={() => setGpsSimulado(!gpsSimulado)}>
-        GPS simulado: {gpsSimulado ? "SÍ" : "NO"} (tocar para cambiar)
-      </button>
+      <p className="text-center text-[11px] text-suave">
+        {gpsSimulado ? "Modo simulación: el GPS avanzará solo por la ruta" : "Se usará el GPS de tu celular"}
+      </p>
     </div>
   );
 }

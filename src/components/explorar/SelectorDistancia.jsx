@@ -1,4 +1,4 @@
-// Selector de distancia: 3, 5, 10 km o Personalizado (1 a 42 km)
+// Selector de distancia: Todas, 3, 5, 10 km o Personalizado (1 a 42 km)
 import Tarjeta from '../Tarjeta'
 import CampoTexto from '../CampoTexto'
 
@@ -7,6 +7,7 @@ const OPCIONES = [
   { valor: 5, titulo: '5 km', subtitulo: 'Popular' },
   { valor: 10, titulo: '10 km', subtitulo: 'Retador' },
   { valor: 'personalizado', titulo: 'Personalizado', subtitulo: 'A tu medida' },
+  { valor: 'todas', titulo: 'Ver todas', subtitulo: 'Todas las rutas' },
 ]
 
 // Devuelve el mensaje de error del texto escrito, o '' si está bien
@@ -39,6 +40,7 @@ export default function SelectorDistancia({ opcion, alElegir, texto, alCambiarTe
               onClick={() => alElegir(o.valor)}
               className={
                 'rounded-2xl border-2 p-3 text-left min-h-16 transition ' +
+                (o.valor === 'todas' ? 'col-span-2 ' : '') +
                 (elegida
                   ? 'border-menta bg-menta/10 text-menta'
                   : 'border-white/10 text-white')

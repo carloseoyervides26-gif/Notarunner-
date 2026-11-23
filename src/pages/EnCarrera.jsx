@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCarrera } from "../context/CarreraProvider";
 import { useContexto } from "../context/ContextoProvider";
 import MapaRuta from "../components/carrera/MapaRuta";
 import { extraerPolilinea, haversineKm } from "../services/gps";
 import { instruccionGiro } from "../services/giros";
-import { buscarRuta } from "../mocks/rutaCarrera";
+import useRuta from "../components/carrera/useRuta";
+import Cargando from "../components/Cargando";
 import { evaluarAlertaEnCarrera } from "../engine/motorAdaptativo";
 import { guardarCarreraSeguro } from "../services/guardadoP4";
 
@@ -27,40 +28,14 @@ function formatoTiempo(seg) {
   return `${String(m).padStart(2, "0")}:${String(seg % 60).padStart(2, "0")}`;
 }
 
-function zonaCardio(b) {
-  if (b < 125) return "ZONA 2 LIGERA";
-  if (b < 145) return "ZONA 3 AERÓBICA";
-  if (b < 160) return "ZONA 4 UMBRAL";
-  return "ZONA 5 MÁXIMA";
-}
-
 export default function EnCarrera() {
   const c = useCarrera();
   const contexto = useContexto();
-  const { gpsSimulado, setGpsSimulado } = contexto;
+  const { gpsSimulado } = contexto;
   const navigate = useNavigate();
 
-  // TODO: cambiar por getRuta(id) de la Persona 5
-  const ruta = buscarRuta(localStorage.getItem("ruta_activa_id"));
-
-  const [bpm, setBpm] = useState(125);
-  const [verSos, setVerSos] = useState(false);
-  const ritmoRef = useRef(null);
-  ritmoRef.current = c.ritmoActual;
-
-  // Cardio simulado: camina entre 120 y 165 y sube con el ritmo
-  useEffect(() => {
-    if (c.estado !== "corriendo") return;
-    const id = setInterval(() => {
-      setBpm((b) => {
-        const r = ritmoRef.current;
-        const objetivo = r ? Math.max(120, Math.min(165, 190 - r / 8)) : 135;
-        const nuevo = b + (objetivo - b) * 0.2 + (Math.random() * 6 - 3);
-        return Math.round(Math.max(120, Math.min(165, nuevo)));
-      });
-    }, 3000);
-    return () => clearInterval(id);
-  }, [c.estado]);
+  // La ruta que se eligió en Ruta Activa
+  const { ruta, cargando } = useRuta(localStorage.getItem("ruta_activa_id"));
 
   // Guarda la carrera una sola vez al terminar
   const guardada = useRef(false);
@@ -72,7 +47,8 @@ export default function EnCarrera() {
     if (guardada.current) return;
     guardada.current = true;
     guardarCarreraSeguro({
-      route_id: ruta.id,
+      route_id: ruta?.id ?? null,
+      ruta_nombre: ruta?.nombre ?? "Carrera libre",
       inicio: new Date(Date.now() - c.tiempoSeg * 1000).toISOString(),
       fin: new Date().toISOString(),
       duracion_seg: c.tiempoSeg,
@@ -84,12 +60,34 @@ export default function EnCarrera() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [c.estado]);
 
-  const totalKm = largoRutaKm(ruta.geojson);
+  // Sin carrera iniciada
+  if (c.estado === "inactiva") {
+    return (
+      <div className="p-4 space-y-4 text-white">
+        <div className="bg-tarjeta rounded-2xl p-5 text-center space-y-1">
+          <p className="font-bold">No hay una carrera en curso</p>
+          <p className="text-suave text-sm">Elige una ruta en Explorar y toca «Iniciar Carrera» en Ruta Activa.</p>
+        </div>
+        <button
+          className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
+          onClick={() => navigate("/")}
+        >
+          Ir a Explorar
+        </button>
+      </div>
+    );
+  }
+
+  if (cargando) return <Cargando texto="Cargando la ruta…" />;
+
+  // Si la ruta ya no existe, se usa lo que va del recorrido
+  const geojson = ruta?.geojson ?? null;
+  const totalKm = geojson ? largoRutaKm(geojson) : Math.max(c.distanciaKm, 0.01);
   const pct = Math.min(100, (c.distanciaKm / totalKm) * 100);
   const restante = Math.max(0, totalKm - c.distanciaKm);
   const llego = c.estado === "corriendo" && c.distanciaKm >= totalKm - 0.03; // tolerancia de 30 m
-  const giro = instruccionGiro(c.posicion, ruta.geojson);
-  const alerta = c.posicion ? evaluarAlertaEnCarrera(c.posicion, ruta.geojson, contexto) : null;
+  const giro = geojson ? instruccionGiro(c.posicion, geojson) : null;
+  const alerta = c.posicion && geojson ? evaluarAlertaEnCarrera(c.posicion, geojson, contexto) : null;
 
   // Flecha y texto de apoyo de la instrucción de giro
   const textoGiro = giro?.texto || "";
@@ -101,32 +99,6 @@ export default function EnCarrera() {
     : textoGiro.includes("LLEGADA")
     ? "Estás por terminar la ruta"
     : "Continúa por la ruta";
-
-  // Enlaces del SOS
-  const { lat, lng } = c.posicion || {};
-  const enlaceMapa = c.posicion ? `https://www.google.com/maps?q=${lat},${lng}` : "";
-  const textoSos = encodeURIComponent(`Necesito ayuda. Mi ubicación: ${enlaceMapa}`);
-
-  // Sin carrera iniciada
-  if (c.estado === "inactiva") {
-    return (
-      <div className="p-4 space-y-4 text-white">
-        <div className="bg-tarjeta rounded-2xl p-5 text-center space-y-1">
-          <p className="font-bold">No hay una carrera en curso</p>
-          <p className="text-suave text-sm">Elige una ruta en Ruta Activa para comenzar.</p>
-        </div>
-        <button className="w-full text-xs text-suave py-1" onClick={() => setGpsSimulado(!gpsSimulado)}>
-          GPS simulado: {gpsSimulado ? "SÍ" : "NO"} (tocar para cambiar)
-        </button>
-        <button
-          className="w-full bg-menta text-fondo font-bold py-4 rounded-full"
-          onClick={() => c.iniciar(ruta.geojson)}
-        >
-          ▶ Iniciar carrera de prueba
-        </button>
-      </div>
-    );
-  }
 
   // Carrera terminada
   if (c.estado === "terminada") {
@@ -170,7 +142,8 @@ export default function EnCarrera() {
       )}
 
       {/* Mapa */}
-      <MapaRuta geojson={ruta.geojson} posicion={c.posicion} trayecto={c.trayecto} altura={300} seguir />
+      {ruta && <p className="font-titulos font-bold px-1">{ruta.nombre}</p>}
+      <MapaRuta geojson={geojson} posicion={c.posicion} trayecto={c.trayecto} altura={300} seguir />
 
       {c.error && <p className="bg-peligro/20 text-peligro rounded-xl p-3 text-sm">{c.error}</p>}
       {c.avisoPantalla && <p className="bg-lima/15 text-lima rounded-xl p-3 text-xs">{c.avisoPantalla}</p>}
@@ -192,20 +165,18 @@ export default function EnCarrera() {
         </p>
       </div>
 
-      {/* Tiempo y cardio */}
+      {/* Tiempo y ritmo promedio */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-tarjeta rounded-2xl p-3">
           <p className="text-[11px] text-suave tracking-widest">TIEMPO</p>
           <p className="font-datos text-3xl mt-1">{formatoTiempo(c.tiempoSeg)}</p>
         </div>
         <div className="bg-tarjeta rounded-2xl p-3">
-          <p className="text-[11px] text-suave tracking-widest">CARDIO</p>
-          <p className="font-datos text-3xl text-peligro mt-1">
-            {bpm}
-            <span className="text-xs text-suave ml-1">BPM</span>
+          <p className="text-[11px] text-suave tracking-widest">RITMO PROMEDIO</p>
+          <p className="font-datos text-3xl mt-1">
+            {formatoRitmo(c.ritmoPromedio)}
+            <span className="text-xs text-suave ml-1">/km</span>
           </p>
-          <p className="text-[10px] text-lima font-bold mt-1">{zonaCardio(bpm)}</p>
-          <p className="text-[9px] text-suave">FC simulada</p>
         </div>
       </div>
 
@@ -237,7 +208,7 @@ export default function EnCarrera() {
       </div>
 
       {/* Botones */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center">
         {c.estado === "corriendo" ? (
           <button
             className="flex-1 bg-menta text-fondo font-bold py-4 rounded-full tracking-wide"
@@ -253,12 +224,6 @@ export default function EnCarrera() {
             ▶ REANUDAR
           </button>
         )}
-        <button
-          className="w-14 h-14 rounded-full bg-peligro text-white font-bold text-sm shrink-0"
-          onClick={() => setVerSos(true)}
-        >
-          SOS
-        </button>
       </div>
       {(c.estado === "pausada" || llego) && (
         <button
@@ -272,29 +237,6 @@ export default function EnCarrera() {
         <button className="w-full text-xs text-suave py-1" onClick={() => c.setVelocidad(5)}>
           Acelerar ×5 (solo simulación)
         </button>
-      )}
-
-      {/* Ventana SOS */}
-      {verSos && (
-        <div className="fixed inset-0 bg-black/70 flex items-end justify-center z-[2000]">
-          <div className="bg-tarjeta w-full max-w-md rounded-t-3xl p-4 space-y-3">
-            <p className="font-bold text-lg">Emergencia</p>
-            <a href="tel:911" className="block text-center bg-peligro text-white font-bold py-3 rounded-full">
-              Llamar al 911
-            </a>
-            <a
-              href={`sms:?&body=${textoSos}`}
-              className={`block text-center bg-menta text-fondo font-bold py-3 rounded-full ${
-                c.posicion ? "" : "opacity-50 pointer-events-none"
-              }`}
-            >
-              Enviar mi ubicación por mensaje
-            </a>
-            <button className="w-full bg-fondo py-3 rounded-full" onClick={() => setVerSos(false)}>
-              Cancelar
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

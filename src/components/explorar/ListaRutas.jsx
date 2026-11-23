@@ -1,7 +1,7 @@
 // Lista de rutas: pide las rutas, filtra por distancia y las ordena con el motor
 import { useEffect, useMemo, useState } from 'react'
 import { rankearRutas } from '../../engine/motorAdaptativo'
-import { rutasMock } from '../../mocks/rutas'
+import { getRutas } from '../../services/db'
 import Cargando from '../Cargando'
 import MensajeError from '../MensajeError'
 import TarjetaRuta from './TarjetaRuta'
@@ -22,8 +22,7 @@ export default function ListaRutas({ distanciaObjetivo, ubicacion, contexto, alC
       setCargando(true)
       setError('')
       try {
-//        const datos = await getRutas()
-          const datos = rutasMock
+        const datos = await getRutas()
         if (vivo) setRutas(datos)
       } catch {
         if (vivo) setError('No pudimos cargar las rutas.')
@@ -43,7 +42,10 @@ export default function ListaRutas({ distanciaObjetivo, ubicacion, contexto, alC
     if (!distanciaObjetivo) return []
     const minimo = distanciaObjetivo * 0.8
     const maximo = distanciaObjetivo * 1.2
-    const filtradas = rutas.filter((r) => r.distancia_km >= minimo && r.distancia_km <= maximo)
+    const filtradas =
+      distanciaObjetivo === 'todas'
+        ? rutas
+        : rutas.filter((r) => r.distancia_km >= minimo && r.distancia_km <= maximo)
     const punto = ubicacion ?? contexto.ubicacion ?? CENTRO_MONTERREY
     return rankearRutas(filtradas, contexto, punto)
   }, [rutas, distanciaObjetivo, ubicacion, contexto])

@@ -5,8 +5,7 @@ import HojaFlotante from '../components/HojaFlotante'
 import CampoTexto from '../components/CampoTexto'
 import Boton from '../components/Boton'
 import MensajeError from '../components/MensajeError'
-// Cuando db.js tenga crearItinerario, cambia esta línea a '../services/db'
-import { crearItinerario } from '../mocks/itinerarios'
+import { crearItinerario } from '../services/db'
 
 // Fecha de hoy como 'AAAA-MM-DD' (con la hora local, no la de UTC)
 function hoyLocal() {

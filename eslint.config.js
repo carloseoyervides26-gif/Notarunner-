@@ -18,4 +18,9 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // Scripts que se corren con Node (no en el navegador)
+  {
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: { globals: globals.node },
+  },
 ])
